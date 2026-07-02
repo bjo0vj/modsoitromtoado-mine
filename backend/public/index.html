@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fubabeo.mod Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="icon">💀</span>
+                <h1>fubabeo.mod</h1>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search IGN...">
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Player List -->
+            <section class="players-section">
+                <h2>Active Players</h2>
+                <div class="players-grid" id="playersGrid">
+                    <div class="loading">Loading players...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Player Detail Modal -->
+    <div class="modal-overlay" id="playerModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">&times;</button>
+            
+            <div class="player-header">
+                <img id="modalAvatar" src="" alt="Avatar" class="modal-avatar">
+                <div class="player-info">
+                    <h2 id="modalIgn">PlayerName</h2>
+                    <p id="modalServer" class="server-badge">Server IP</p>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="latest">📍 Latest Position</button>
+                <button class="tab-btn" data-tab="deaths">💀 Deaths</button>
+                <button class="tab-btn" data-tab="blocks">📦 Blocks</button>
+                <button class="tab-btn" data-tab="waypoints">🚩 Waypoints</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="tab-latest" class="tab-pane active">
+                    <!-- Dynamic content -->
+                </div>
+                <div id="tab-deaths" class="tab-pane">
+                    <!-- Dynamic content -->
+                </div>
+                <div id="tab-blocks" class="tab-pane">
+                    <!-- Dynamic content -->
+                </div>
+                <div id="tab-waypoints" class="tab-pane">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
