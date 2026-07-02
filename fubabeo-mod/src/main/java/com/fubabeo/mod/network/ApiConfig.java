@@ -10,7 +10,7 @@ import java.io.FileWriter;
 
 public class ApiConfig {
     private static final Gson GSON = new Gson();
-    public static String API_URL = "https://death-compass-api.onrender.com";
+    public static String API_URL = "https://modsoitromtoado-mine.onrender.com";
     public static String API_KEY = "iufubabeobeo";
     public static int HEARTBEAT_INTERVAL = 300; // seconds
 
