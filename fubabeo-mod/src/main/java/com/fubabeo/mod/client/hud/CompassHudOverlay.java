@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Text;
 import org.joml.Matrix4f;
 
 public class CompassHudOverlay implements HudRenderCallback {
@@ -60,8 +61,8 @@ public class CompassHudOverlay implements HudRenderCallback {
         // Green border top
         drawContext.fill(bgX, baseY - 22, bgX + bgW, baseY - 21, 0xFF00FF00);
 
-        drawContext.drawText(client.textRenderer, text, cx - tw / 2, baseY - 19, 0x55FF55, true);
-        drawContext.drawText(client.textRenderer, subText, cx - sw / 2, baseY - 8, 0xAAFFAA, true);
+        drawContext.drawText(client.textRenderer, Text.literal(text), cx - tw / 2, baseY - 19, 0x55FF55, true);
+        drawContext.drawText(client.textRenderer, Text.literal(subText), cx - sw / 2, baseY - 8, 0xAAFFAA, true);
     }
 
     private void drawNavigationHud(DrawContext drawContext, MinecraftClient client,
@@ -111,7 +112,7 @@ public class CompassHudOverlay implements HudRenderCallback {
         // Name (truncate if too long)
         String name = targetName.length() > 10 ? targetName.substring(0, 9) + ".." : targetName;
         int nameColor = 0xFFFFFF;
-        drawContext.drawText(client.textRenderer, name, panelX + 34, panelY + 5, nameColor, true);
+        drawContext.drawText(client.textRenderer, Text.literal(name), panelX + 34, panelY + 5, nameColor, true);
 
         // Distance
         String distStr;
@@ -126,10 +127,10 @@ public class CompassHudOverlay implements HudRenderCallback {
             distStr = String.format("%.0fm", distance);
             distColor = 0xAAAAAA; // Grey = far
         }
-        drawContext.drawText(client.textRenderer, distStr, panelX + 34, panelY + 18, distColor, true);
+        drawContext.drawText(client.textRenderer, Text.literal(distStr), panelX + 34, panelY + 18, distColor, true);
 
         // ═══ CLOSE INDICATOR ═══
-        drawContext.drawText(client.textRenderer, "x", panelX + panelW - 10, panelY + 3, 0xFF5555, true);
+        drawContext.drawText(client.textRenderer, Text.literal("x"), panelX + panelW - 10, panelY + 3, 0xFF5555, true);
     }
 
     /**
