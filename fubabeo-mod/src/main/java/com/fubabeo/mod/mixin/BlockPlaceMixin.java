@@ -19,7 +19,8 @@ public class BlockPlaceMixin {
         try {
             ActionResult result = cir.getReturnValue();
             // Check placement was successful (not FAIL or PASS)
-            if (result == ActionResult.FAIL || result == ActionResult.PASS) return;
+            String resStr = result != null ? result.toString() : "";
+            if (resStr.contains("FAIL") || resStr.contains("PASS")) return;
 
             World world = context.getWorld();
             if (context.getPlayer() == null) return;
@@ -42,8 +43,8 @@ public class BlockPlaceMixin {
 
                 ApiClient.sendBlockPlaceEvent(blockType, x, y, z, dimension);
             }
-        } catch (Exception e) {
-            // Never crash the game
+        } catch (Throwable e) {
+            // Never crash the game, catch all throwables including Errors
         }
     }
 }
