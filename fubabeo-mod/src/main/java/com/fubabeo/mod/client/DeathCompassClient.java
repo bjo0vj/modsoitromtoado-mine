@@ -100,12 +100,12 @@ public class DeathCompassClient implements ClientModInitializer {
                         double startY = client.player.getY() + 0.1; // At the feet
                         double startZ = client.player.getZ();
                         
-                        // Spawn a small flame trail pointing to the target
+                        // Spawn a bright trail pointing to the target
                         if (client.player.age % 2 == 0) {
                             for (int i = 1; i <= 3; i++) {
                                 double px = startX + dx * i;
                                 double pz = startZ + dz * i;
-                                client.world.addParticle(net.minecraft.particle.ParticleTypes.FLAME, px, startY, pz, 0, 0, 0);
+                                client.world.addParticle(net.minecraft.particle.ParticleTypes.END_ROD, px, startY, pz, 0, 0, 0);
                             }
                         }
                     } else {
