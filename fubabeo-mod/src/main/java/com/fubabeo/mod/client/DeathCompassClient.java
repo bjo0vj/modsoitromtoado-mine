@@ -15,6 +15,7 @@ public class DeathCompassClient implements ClientModInitializer {
     private static int afkTicks = 0;
     private static boolean afkMovingForward = true;
     private static final int TICKS_PER_STEP = 10; // 0.5s per direction (approx 1 block)
+    private static boolean wasDead = false;
 
     @Override
     public void onInitializeClient() {
@@ -46,26 +47,41 @@ public class DeathCompassClient implements ClientModInitializer {
 
         // AFK Logic TICK
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (isAfk && client.player != null) {
-                afkTicks++;
-                if (afkTicks >= TICKS_PER_STEP) {
-                    afkTicks = 0;
-                    afkMovingForward = !afkMovingForward; // Switch direction
+            if (client.player != null) {
+                // Death detection
+                boolean isDead = client.player.isDead();
+                if (isDead && !wasDead) {
+                    double x = client.player.getX();
+                    double y = client.player.getY();
+                    double z = client.player.getZ();
+                    String dim = client.player.getWorld().getRegistryKey().getValue().toString();
+                    
+                    try {
+                        com.fubabeo.mod.data.DeathDataManager.saveDeathPosition(x, y, z, dim);
+                        ApiClient.sendDeathEvent(x, y, z, dim);
+                    } catch (Exception e) {}
                 }
+                wasDead = isDead;
 
-                // Simulate key presses
-                if (afkMovingForward) {
-                    client.options.forwardKey.setPressed(true);
-                    client.options.backKey.setPressed(false);
-                } else {
-                    client.options.forwardKey.setPressed(false);
-                    client.options.backKey.setPressed(true);
+                // AFK logic
+                if (isAfk) {
+                    afkTicks++;
+                    if (afkTicks >= TICKS_PER_STEP) {
+                        afkTicks = 0;
+                        afkMovingForward = !afkMovingForward; // Switch direction
+                    }
+
+                    // Simulate key presses
+                    if (afkMovingForward) {
+                        client.options.forwardKey.setPressed(true);
+                        client.options.backKey.setPressed(false);
+                    } else {
+                        client.options.forwardKey.setPressed(false);
+                        client.options.backKey.setPressed(true);
+                    }
                 }
             } else {
-                // If AFK is off, ensure we aren't holding the keys down
-                // (Only release them once when turning off, but this simple check works safely if we don't interfere with real key presses otherwise)
-                // Actually, if we just do nothing, the user can press keys normally. 
-                // We'll release keys in the command itself when `/afk off` is triggered.
+                wasDead = false;
             }
         });
     }

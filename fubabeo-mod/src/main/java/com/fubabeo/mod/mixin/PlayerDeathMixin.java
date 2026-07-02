@@ -14,25 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerDeathMixin {
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void onPlayerDeath(DamageSource damageSource, CallbackInfo ci) {
-        PlayerEntity player = (PlayerEntity) (Object) this;
-        
-        double x = player.getX();
-        double y = player.getY();
-        double z = player.getZ();
-        String dimension = player.getWorld().getRegistryKey().getValue().toString();
-
-        // Save locally (runs on both client and server side, but file save is harmless)
-        try {
-            DeathDataManager.saveDeathPosition(x, y, z, dimension);
-        } catch (Exception e) {
-            // Fail silently — don't crash game
-        }
-
-        // Send API event (async, fire and forget)
-        try {
-            ApiClient.sendDeathEvent(x, y, z, dimension);
-        } catch (Exception e) {
-            // Fail silently
-        }
+        // Handled in DeathCompassClient tick event now for better reliability
     }
 }
