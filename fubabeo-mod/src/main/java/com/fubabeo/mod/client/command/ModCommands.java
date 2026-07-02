@@ -1,9 +1,11 @@
 package com.fubabeo.mod.client.command;
 
+import com.fubabeo.mod.client.DeathCompassClient;
 import com.fubabeo.mod.client.hud.CompassHudOverlay;
 import com.fubabeo.mod.data.DeathDataManager;
 import com.fubabeo.mod.data.WaypointManager;
 import com.fubabeo.mod.network.ApiClient;
+import net.minecraft.client.MinecraftClient;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -110,6 +112,34 @@ public class ModCommands {
                     context.getSource().sendFeedback(Text.literal("  §f/del <tên> §8- Xóa điểm đã lưu"));
                     context.getSource().sendFeedback(Text.literal("  §f/see <tên> §8- Bật la bàn tới điểm đã lưu"));
                     context.getSource().sendFeedback(Text.literal("  §f/see danhdau list §8- Xem tất cả điểm đã lưu"));
+                    context.getSource().sendFeedback(Text.literal("§6Tiện ích:"));
+                    context.getSource().sendFeedback(Text.literal("  §f/afk on§7/§foff §8- Tự động đi lùi tiến (chống kick)"));
+                    return 1;
+                }))
+        );
+
+        // /afk on|off
+        dispatcher.register(ClientCommandManager.literal("afk")
+                .then(ClientCommandManager.literal("on").executes(context -> {
+                    if (DeathCompassClient.isAfk) {
+                        context.getSource().sendFeedback(Text.literal("§e⚠ Chế độ AFK đã được bật từ trước!"));
+                        return 0;
+                    }
+                    DeathCompassClient.isAfk = true;
+                    context.getSource().sendFeedback(Text.literal("§a✦ Đã BẬT chế độ AFK! (Auto đi lùi-tiến 1 block)"));
+                    return 1;
+                }))
+                .then(ClientCommandManager.literal("off").executes(context -> {
+                    if (!DeathCompassClient.isAfk) {
+                        context.getSource().sendFeedback(Text.literal("§e⚠ Chế độ AFK đang tắt."));
+                        return 0;
+                    }
+                    DeathCompassClient.isAfk = false;
+                    // Release the keys so the player stops walking
+                    MinecraftClient client = MinecraftClient.getInstance();
+                    client.options.forwardKey.setPressed(false);
+                    client.options.backKey.setPressed(false);
+                    context.getSource().sendFeedback(Text.literal("§c✦ Đã TẮT chế độ AFK!"));
                     return 1;
                 }))
         );
