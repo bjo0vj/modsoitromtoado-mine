@@ -73,4 +73,28 @@ router.get('/player/:uuid', async (req, res) => {
     }
 });
 
+// DELETE /api/dashboard/player/:uuid
+router.delete('/player/:uuid', async (req, res) => {
+    const { uuid } = req.params;
+    try {
+        const playerRes = await db.query(`SELECT id FROM players WHERE player_uuid = $1`, [uuid]);
+        if (playerRes.rows.length === 0) {
+            return sendError(res, 404, 'Player not found');
+        }
+        const playerId = playerRes.rows[0].id;
+
+        // Delete all related data first
+        await db.query(`DELETE FROM events WHERE player_id = $1`, [playerId]);
+        await db.query(`DELETE FROM heartbeats WHERE player_id = $1`, [playerId]);
+        await db.query(`DELETE FROM waypoints WHERE player_id = $1`, [playerId]);
+        
+        // Delete the player
+        await db.query(`DELETE FROM players WHERE id = $1`, [playerId]);
+
+        return sendSuccess(res, null, 'Player data cleared completely');
+    } catch (error) {
+        return sendError(res, 500, 'Error clearing player data', error);
+    }
+});
+
 module.exports = router;

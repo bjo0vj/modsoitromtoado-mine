@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('playerModal');
     const closeModalBtn = document.getElementById('closeModal');
     const tabBtns = document.querySelectorAll('.tab-btn');
+    const clearDataBtn = document.getElementById('clearDataBtn');
+    let currentPlayerUuid = null;
 
     // ══════════════════════════ SANITIZE (XSS protection) ══════════════════════════
     function escapeHtml(str) {
@@ -95,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             if (data.success) {
+                currentPlayerUuid = uuid;
                 populateModal(data.data);
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -231,6 +234,32 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    clearDataBtn.addEventListener('click', async () => {
+        if (!currentPlayerUuid) return;
+        
+        const ign = document.getElementById('modalIgn').textContent;
+        if (!confirm(`Bạn có chắc muốn xóa TOÀN BỘ dữ liệu của người chơi ${ign} không?\nHành động này không thể hoàn tác!`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/dashboard/player/${encodeURIComponent(currentPlayerUuid)}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Đã xóa dữ liệu thành công!');
+                closeModal();
+                fetchPlayers(); // Refresh list
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error clearing data', error);
+            alert('Có lỗi xảy ra khi xóa dữ liệu!');
+        }
+    });
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
