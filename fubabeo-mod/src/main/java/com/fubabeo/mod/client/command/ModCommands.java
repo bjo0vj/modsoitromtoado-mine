@@ -207,6 +207,11 @@ public class ModCommands {
                                 }))
                         )
                 )
+                .then(ClientCommandManager.literal("off").executes(context -> {
+                    DeathCompassClient.isNavigating = false;
+                    context.getSource().sendFeedback(Text.literal("§e[-] Đã tắt tia sáng chỉ đường."));
+                    return 1;
+                }))
         );
     }
 }
