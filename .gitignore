@@ -11,3 +11,5 @@ fubabeo-mod/run/
 # OS
 .DS_Store
 Thumbs.db
+
+*.zip
