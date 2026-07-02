@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(net.minecraft.item.BlockItem.class)
 public class BlockPlaceMixin {
-    @Inject(method = "place(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", at = @At("RETURN"))
+    @Inject(method = "useOnBlock(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", at = @At("RETURN"))
     private void onBlockPlace(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         try {
             ActionResult result = cir.getReturnValue();
