@@ -1,0 +1,13 @@
+# Backend
+backend/node_modules/
+backend/.env
+
+# Mod
+fubabeo-mod/.gradle/
+fubabeo-mod/build/
+fubabeo-mod/.idea/
+fubabeo-mod/run/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.fubabeo.mod.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerDeathMixin",
+    "BlockPlaceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

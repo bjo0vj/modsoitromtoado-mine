@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "fubabeo",
+  "version": "${version}",
+  "name": "fubabeo.mod",
+  "description": "Death Compass Mod",
+  "authors": [
+    "Me"
+  ],
+  "contact": {},
+  "license": "CC0-1.0",
+  "icon": "assets/fubabeo/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.fubabeo.mod.DeathCompassMod"
+    ],
+    "client": [
+      "com.fubabeo.mod.client.DeathCompassClient"
+    ]
+  },
+  "mixins": [
+    "fubabeo.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
