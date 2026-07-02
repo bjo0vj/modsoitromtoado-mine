@@ -1,7 +1,6 @@
 package com.fubabeo.mod.client.command;
 
 import com.fubabeo.mod.client.DeathCompassClient;
-import com.fubabeo.mod.client.hud.CompassHudOverlay;
 import com.fubabeo.mod.data.DeathDataManager;
 import com.fubabeo.mod.data.WaypointManager;
 import com.fubabeo.mod.network.ApiClient;
@@ -30,10 +29,10 @@ public class ModCommands {
                         .then(ClientCommandManager.literal("on").executes(context -> {
                             DeathDataManager.DeathPosition lastDeath = DeathDataManager.getLastDeath();
                             if (lastDeath != null) {
-                                CompassHudOverlay.targetX = lastDeath.x;
-                                CompassHudOverlay.targetZ = lastDeath.z;
-                                CompassHudOverlay.targetName = "Last Death";
-                                CompassHudOverlay.isVisible = true;
+                                DeathCompassClient.targetX = lastDeath.x;
+                                DeathCompassClient.targetZ = lastDeath.z;
+                                DeathCompassClient.targetName = "Last Death";
+                                DeathCompassClient.isNavigating = true;
                                 context.getSource().sendFeedback(Text.literal("§a✦ Đang dẫn đường tới điểm chết gần nhất"));
                             } else {
                                 context.getSource().sendFeedback(Text.literal("§c✖ Chưa có dữ liệu về điểm chết."));
@@ -41,7 +40,7 @@ public class ModCommands {
                             return 1;
                         }))
                         .then(ClientCommandManager.literal("off").executes(context -> {
-                            CompassHudOverlay.isVisible = false;
+                            DeathCompassClient.isNavigating = false;
                             context.getSource().sendFeedback(Text.literal("§e✦ Đã tắt la bàn"));
                             return 1;
                         }))
@@ -72,10 +71,10 @@ public class ModCommands {
                     String name = StringArgumentType.getString(context, "name");
                     WaypointManager.Waypoint wp = WaypointManager.getWaypoint(name);
                     if (wp != null) {
-                        CompassHudOverlay.targetX = wp.x;
-                        CompassHudOverlay.targetZ = wp.z;
-                        CompassHudOverlay.targetName = wp.name;
-                        CompassHudOverlay.isVisible = true;
+                        DeathCompassClient.targetX = wp.x;
+                        DeathCompassClient.targetZ = wp.z;
+                        DeathCompassClient.targetName = wp.name;
+                        DeathCompassClient.isNavigating = true;
                         context.getSource().sendFeedback(Text.literal("§a✦ Đang dẫn đường tới: §f" + wp.name));
                     } else {
                         context.getSource().sendFeedback(Text.literal("§c✖ Không tìm thấy điểm đánh dấu: " + name));
@@ -180,8 +179,8 @@ public class ModCommands {
                     }
                     WaypointManager.removeWaypoint(name);
                     context.getSource().sendFeedback(Text.literal("§a✦ Đã xóa điểm: §f" + name));
-                    if (CompassHudOverlay.isVisible && CompassHudOverlay.targetName.equalsIgnoreCase(name)) {
-                        CompassHudOverlay.isVisible = false;
+                    if (DeathCompassClient.isNavigating && DeathCompassClient.targetName.equalsIgnoreCase(name)) {
+                        DeathCompassClient.isNavigating = false;
                     }
                     return 1;
                 }))
@@ -196,10 +195,10 @@ public class ModCommands {
                                     double y = DoubleArgumentType.getDouble(context, "y");
                                     double z = DoubleArgumentType.getDouble(context, "z");
 
-                                    CompassHudOverlay.targetX = x;
-                                    CompassHudOverlay.targetZ = z;
-                                    CompassHudOverlay.targetName = String.format("Target (%d, %d)", (int)x, (int)z);
-                                    CompassHudOverlay.isVisible = true;
+                                    DeathCompassClient.targetX = x;
+                                    DeathCompassClient.targetZ = z;
+                                    DeathCompassClient.targetName = String.format("Target (%d, %d)", (int)x, (int)z);
+                                    DeathCompassClient.isNavigating = true;
 
                                     context.getSource().sendFeedback(Text.literal(
                                             String.format("§a✦ Đang dẫn đường tới §f%.0f, %.0f, %.0f", x, y, z)

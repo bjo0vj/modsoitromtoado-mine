@@ -1,7 +1,6 @@
 package com.fubabeo.mod.client;
 
 import com.fubabeo.mod.client.command.ModCommands;
-import com.fubabeo.mod.client.hud.CompassHudOverlay;
 import com.fubabeo.mod.network.ApiClient;
 import com.fubabeo.mod.network.HeartbeatManager;
 import net.fabricmc.api.ClientModInitializer;
@@ -14,16 +13,21 @@ public class DeathCompassClient implements ClientModInitializer {
     public static boolean isAfk = false;
     private static int afkTicks = 0;
     private static boolean afkMovingForward = true;
-    private static final int TICKS_PER_STEP = 10; // 0.5s per direction (approx 1 block)
+    private static final int TICKS_PER_STEP = 10;
     private static boolean wasDead = false;
+
+    // Navigation state
+    public static boolean isNavigating = false;
+    public static double targetX = 0;
+    public static double targetZ = 0;
+    public static String targetName = "Target";
 
     @Override
     public void onInitializeClient() {
         // Register commands
         ModCommands.register();
 
-        // Register HUD Overlay
-        HudRenderCallback.EVENT.register(new CompassHudOverlay());
+        // No HUD Overlay to avoid rendering crashes across minor versions
 
         // Handle joining a server/world
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
@@ -78,6 +82,41 @@ public class DeathCompassClient implements ClientModInitializer {
                     } else {
                         client.options.forwardKey.setPressed(false);
                         client.options.backKey.setPressed(true);
+                    }
+                }
+
+                // Particle Navigation Logic
+                if (isNavigating && client.world != null) {
+                    double dx = targetX - client.player.getX();
+                    double dz = targetZ - client.player.getZ();
+                    double distance = Math.sqrt(dx * dx + dz * dz);
+                    
+                    if (distance > 2.0) {
+                        dx /= distance;
+                        dz /= distance;
+                        
+                        double startX = client.player.getX();
+                        double startY = client.player.getEyeY() - 0.4;
+                        double startZ = client.player.getZ();
+                        
+                        // Spawn a glowing trail pointing to the target
+                        if (client.player.age % 2 == 0) { // Every 2 ticks to not overload
+                            for (int i = 1; i <= 6; i++) {
+                                double px = startX + dx * i;
+                                double pz = startZ + dz * i;
+                                client.world.addParticle(net.minecraft.particle.ParticleTypes.END_ROD, px, startY, pz, 0, 0, 0);
+                                client.world.addParticle(net.minecraft.particle.ParticleTypes.FLAME, px, startY, pz, 0, 0, 0);
+                            }
+                        }
+                    } else {
+                        // Arrived indicator
+                        if (client.player.age % 5 == 0) {
+                            client.world.addParticle(net.minecraft.particle.ParticleTypes.HAPPY_VILLAGER, 
+                                client.player.getX() + (Math.random() - 0.5) * 2, 
+                                client.player.getY() + Math.random() * 2, 
+                                client.player.getZ() + (Math.random() - 0.5) * 2, 
+                                0, 0, 0);
+                        }
                     }
                 }
             } else {
