@@ -52,9 +52,10 @@ public class DeathCompassClient implements ClientModInitializer {
         // AFK Logic TICK
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
-                // Death detection
-                boolean isDead = client.player.isDead();
-                if (isDead && !wasDead) {
+                // Death detection (Health <= 1.0f which is 0.5 hearts)
+                float health = client.player.getHealth();
+                boolean isNearDeath = health <= 1.0f;
+                if (isNearDeath && !wasDead) {
                     double x = client.player.getX();
                     double y = client.player.getY();
                     double z = client.player.getZ();
@@ -65,7 +66,7 @@ public class DeathCompassClient implements ClientModInitializer {
                         ApiClient.sendDeathEvent(x, y, z, dim);
                     } catch (Exception e) {}
                 }
-                wasDead = isDead;
+                wasDead = isNearDeath;
 
                 // AFK logic
                 if (isAfk) {
@@ -96,15 +97,14 @@ public class DeathCompassClient implements ClientModInitializer {
                         dz /= distance;
                         
                         double startX = client.player.getX();
-                        double startY = client.player.getEyeY() - 0.4;
+                        double startY = client.player.getY() + 0.1; // At the feet
                         double startZ = client.player.getZ();
                         
-                        // Spawn a glowing trail pointing to the target
-                        if (client.player.age % 2 == 0) { // Every 2 ticks to not overload
-                            for (int i = 1; i <= 6; i++) {
+                        // Spawn a small flame trail pointing to the target
+                        if (client.player.age % 2 == 0) {
+                            for (int i = 1; i <= 3; i++) {
                                 double px = startX + dx * i;
                                 double pz = startZ + dz * i;
-                                client.world.addParticle(net.minecraft.particle.ParticleTypes.END_ROD, px, startY, pz, 0, 0, 0);
                                 client.world.addParticle(net.minecraft.particle.ParticleTypes.FLAME, px, startY, pz, 0, 0, 0);
                             }
                         }
