@@ -31,16 +31,18 @@ router.post('/', auth, async (req, res) => {
         const playerId = playerResult.rows[0].id;
 
         // Insert heartbeat record
-        const hbQuery = `
-            INSERT INTO heartbeats (player_id, x, y, z, dimension, server_ip, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `;
-        const hbTime = timestamp ? new Date(timestamp) : new Date();
-        await db.query(hbQuery, [playerId, x, y, z, dimension, serverIp, hbTime]);
+        // Delete old heartbeats for this player to only keep the latest one
+        await db.query(`DELETE FROM heartbeats WHERE player_id = $1`, [playerId]);
 
+        const query = `
+            INSERT INTO heartbeats (player_id, x, y, z, dimension, server_ip)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+        await db.query(query, [playerId, x, y, z, dimension, serverIp]);
+        
         // Console log 10% of the time to avoid spamming the logs too much, or maybe log all? 
-        // Let's log it all but keep it short
-        console.log(`[${serverIp}] - [HEARTBEAT] - [${x} ${y} ${z}]`);
+        // Let's log it so we know it's working
+        console.log(`[HEARTBEAT] ${ign} is at ${x}, ${y}, ${z} on server [${serverIp}]`);
 
         return sendSuccess(res, null, 'Heartbeat recorded successfully');
     } catch (error) {

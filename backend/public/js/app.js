@@ -154,14 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── Tab 2: Deaths ──
         const deaths = events.filter(e => e.event_type === 'death');
-        document.getElementById('tab-deaths').innerHTML = renderEventTable(deaths, false);
+        document.getElementById('tab-deaths').innerHTML = renderEventTable(deaths, false, 'events');
 
         // ── Tab 3: Blocks ──
         const blocks = events.filter(e => e.event_type !== 'death');
-        document.getElementById('tab-blocks').innerHTML = renderEventTable(blocks, true);
+        document.getElementById('tab-blocks').innerHTML = renderEventTable(blocks, true, 'events');
 
         // ── Tab 4: Waypoints ──
-        document.getElementById('tab-waypoints').innerHTML = renderWaypointTable(waypoints);
+        document.getElementById('tab-waypoints').innerHTML = renderWaypointTable(waypoints, 'waypoints');
 
         // Reset to first tab
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ══════════════════════════ TABLE RENDERERS ══════════════════════════
-    function renderEventTable(items, showType) {
+    function renderEventTable(items, showType, tableType) {
         if (items.length === 0) {
             const icon = showType ? '📦' : '💀';
             const text = showType ? 'No block events yet.' : 'No deaths recorded.';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '<table class="data-table"><thead><tr>';
         if (showType) html += '<th>Type</th>';
-        html += '<th>Coordinates</th><th>Dimension</th><th>Time</th></tr></thead><tbody>';
+        html += '<th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
             html += '<tr>';
@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<td><span class="coord">${Math.round(item.x)}, ${Math.round(item.y)}, ${Math.round(item.z)}</span></td>`;
             html += `<td>${escapeHtml((item.dimension || '').replace('minecraft:', ''))}</td>`;
             html += `<td><span class="time-ago">${timeAgo(item.created_at)}</span></td>`;
+            html += `<td><button class="delete-item-btn" onclick="deleteItem('${tableType}', ${item.id})">❌</button></td>`;
             html += '</tr>';
         });
 
@@ -198,12 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    function renderWaypointTable(items) {
+    function renderWaypointTable(items, tableType) {
         if (items.length === 0) {
             return '<div class="empty-state"><span class="icon">🚩</span>No waypoints saved.</div>';
         }
 
-        let html = '<table class="data-table"><thead><tr><th>Name</th><th>Coordinates</th><th>Dimension</th><th>Time</th></tr></thead><tbody>';
+        let html = '<table class="data-table"><thead><tr><th>Name</th><th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
             html += `<tr>`;
@@ -211,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<td><span class="coord">${Math.round(item.x)}, ${Math.round(item.y)}, ${Math.round(item.z)}</span></td>`;
             html += `<td>${escapeHtml((item.dimension || '').replace('minecraft:', ''))}</td>`;
             html += `<td><span class="time-ago">${timeAgo(item.created_at)}</span></td>`;
+            html += `<td><button class="delete-item-btn" onclick="deleteItem('${tableType}', ${item.id})">❌</button></td>`;
             html += `</tr>`;
         });
 
@@ -229,6 +231,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const [icon, label, cls] = types[type] || ['❓', type, 'block'];
         return `<span class="event-badge ${cls}">${icon} ${escapeHtml(label)}</span>`;
     }
+
+    window.deleteItem = async function(tableType, id) {
+        if (!confirm('Bạn có chắc muốn xóa mục này không?')) return;
+        try {
+            const res = await fetch(`/api/dashboard/item/${tableType}/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                // Refresh current modal data
+                if (currentPlayerUuid) {
+                    openPlayerModal(currentPlayerUuid);
+                }
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa:', error);
+            alert('Có lỗi xảy ra khi xóa!');
+        }
+    };
 
     // ══════════════════════════ MODAL EVENTS ══════════════════════════
     closeModalBtn.addEventListener('click', closeModal);

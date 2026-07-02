@@ -97,4 +97,22 @@ router.delete('/player/:uuid', async (req, res) => {
     }
 });
 
+// DELETE /api/dashboard/item/:type/:id
+router.delete('/item/:type/:id', async (req, res) => {
+    const { type, id } = req.params;
+    
+    // Validate table type to prevent SQL injection
+    const allowedTables = ['events', 'heartbeats', 'waypoints'];
+    if (!allowedTables.includes(type)) {
+        return sendError(res, 400, 'Invalid data type');
+    }
+
+    try {
+        await db.query(`DELETE FROM ${type} WHERE id = $1`, [id]);
+        return sendSuccess(res, null, `Item deleted successfully from ${type}`);
+    } catch (error) {
+        return sendError(res, 500, `Error deleting item from ${type}`, error);
+    }
+});
+
 module.exports = router;

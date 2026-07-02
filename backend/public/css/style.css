@@ -498,3 +498,6 @@ body {
     background: #ef4444;
     color: white;
 }
+
+.delete-item-btn { background: none; border: none; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; font-size: 1.1rem; }
+.delete-item-btn:hover { opacity: 1; }
