@@ -17,28 +17,6 @@ async function getPlayerId(uuid, ign, serverIp) {
     return result.rows[0].id;
 }
 
-// POST /api/event/death
-router.post('/death', auth, async (req, res) => {
-    const { uuid, ign, x, y, z, dimension, serverIp } = req.body;
-
-    if (!uuid || !ign || x === undefined || y === undefined || z === undefined || !dimension) {
-        return sendError(res, 400, 'Missing required data (uuid, ign, x, y, z, dimension)');
-    }
-
-    try {
-        const playerId = await getPlayerId(uuid, ign, serverIp);
-        const query = `
-            INSERT INTO events (player_id, event_type, x, y, z, dimension, server_ip)
-            VALUES ($1, 'death', $2, $3, $4, $5, $6)
-        `;
-        await db.query(query, [playerId, x, y, z, dimension, serverIp]);
-        console.log(`[${serverIp}] - [DEATH] - [${x} ${y} ${z}]`);
-        return sendSuccess(res, null, 'Death event recorded');
-    } catch (error) {
-        return sendError(res, 500, 'Error recording death', error);
-    }
-});
-
 // POST /api/event/block_place
 router.post('/block_place', auth, async (req, res) => {
     const { uuid, ign, blockType, x, y, z, dimension, serverIp } = req.body;
@@ -48,7 +26,7 @@ router.post('/block_place', auth, async (req, res) => {
     }
 
     // Validate blockType whitelist
-    const validTypes = ['bed', 'chest', 'ender_chest', 'enchanting_table', 'shulker_box'];
+    const validTypes = ['minecraft:chest', 'minecraft:barrel', 'minecraft:ender_chest', 'minecraft:white_bed', 'minecraft:red_bed', 'minecraft:black_bed', 'minecraft:blue_bed', 'minecraft:brown_bed', 'minecraft:cyan_bed', 'minecraft:gray_bed', 'minecraft:green_bed', 'minecraft:light_blue_bed', 'minecraft:light_gray_bed', 'minecraft:lime_bed', 'minecraft:magenta_bed', 'minecraft:orange_bed', 'minecraft:pink_bed', 'minecraft:purple_bed', 'minecraft:yellow_bed'];
     if (!validTypes.includes(blockType)) {
         return sendError(res, 400, `Invalid block type: ${blockType}`);
     }
@@ -56,39 +34,38 @@ router.post('/block_place', auth, async (req, res) => {
     try {
         const playerId = await getPlayerId(uuid, ign, serverIp);
         const query = `
-            INSERT INTO events (player_id, event_type, x, y, z, dimension, server_ip)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO events (player_id, event_type, metadata, x, y, z, dimension, server_ip)
+            VALUES ($1, 'BLOCK_PLACE', $2, $3, $4, $5, $6, $7)
         `;
         await db.query(query, [playerId, blockType, x, y, z, dimension, serverIp]);
-        console.log(`[${serverIp}] - [${blockType}] - [${x} ${y} ${z}]`);
+        console.log(`[${serverIp}] - [BLOCK_PLACE: ${blockType}] - [${x} ${y} ${z}]`);
         return sendSuccess(res, null, 'Block place event recorded');
     } catch (error) {
         return sendError(res, 500, 'Error recording block placement', error);
     }
 });
 
-// POST /api/event/waypoint
-router.post('/waypoint', auth, async (req, res) => {
-    const { uuid, ign, name, x, y, z, dimension, serverIp } = req.body;
+// POST /api/event/item_drop
+router.post('/item_drop', auth, async (req, res) => {
+    const { uuid, ign, itemId, count, x, y, z, dimension, serverIp } = req.body;
 
-    if (!uuid || !ign || !name || x === undefined || y === undefined || z === undefined || !dimension) {
+    if (!uuid || !ign || !itemId || count === undefined || x === undefined || y === undefined || z === undefined || !dimension) {
         return sendError(res, 400, 'Missing required data');
     }
-
-    // Sanitize waypoint name
-    const safeName = name.substring(0, 50).replace(/[<>\"'&]/g, '');
 
     try {
         const playerId = await getPlayerId(uuid, ign, serverIp);
         const query = `
-            INSERT INTO waypoints (player_id, name, x, y, z, dimension, server_ip)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO events (player_id, event_type, metadata, x, y, z, dimension, server_ip)
+            VALUES ($1, 'ITEM_DROP', $2, $3, $4, $5, $6, $7)
         `;
-        await db.query(query, [playerId, safeName, x, y, z, dimension, serverIp]);
-        console.log(`[${serverIp}] - [WAYPOINT: ${safeName}] - [${x} ${y} ${z}]`);
-        return sendSuccess(res, null, 'Waypoint recorded');
+        // include count in metadata
+        const metadata = `${count}x ${itemId}`;
+        await db.query(query, [playerId, metadata, x, y, z, dimension, serverIp]);
+        console.log(`[${serverIp}] - [ITEM_DROP: ${metadata}] - [${x} ${y} ${z}]`);
+        return sendSuccess(res, null, 'Item drop event recorded');
     } catch (error) {
-        return sendError(res, 500, 'Error recording waypoint', error);
+        return sendError(res, 500, 'Error recording item drop', error);
     }
 });
 

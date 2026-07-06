@@ -14,11 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(net.minecraft.item.BlockItem.class)
 public class BlockPlaceMixin {
-    @Inject(method = "useOnBlock(Lnet/minecraft/item/ItemUsageContext;)Lnet/minecraft/util/ActionResult;", at = @At("RETURN"))
+    @Inject(method = "useOnBlock", at = @At("RETURN"))
     private void onBlockPlace(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         try {
             ActionResult result = cir.getReturnValue();
-            // Check placement was successful (not FAIL or PASS)
             String resStr = result != null ? result.toString() : "";
             if (resStr.contains("FAIL") || resStr.contains("PASS")) return;
 
@@ -29,11 +28,15 @@ public class BlockPlaceMixin {
             Block block = ((net.minecraft.item.BlockItem)(Object)this).getBlock();
 
             String blockType = null;
-            if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) blockType = "chest";
-            else if (block == Blocks.ENDER_CHEST) blockType = "ender_chest";
-            else if (block == Blocks.ENCHANTING_TABLE) blockType = "enchanting_table";
-            else if (block.getTranslationKey().contains("bed")) blockType = "bed";
-            else if (block.getTranslationKey().contains("shulker_box")) blockType = "shulker_box";
+            if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) blockType = "minecraft:chest";
+            else if (block == Blocks.ENDER_CHEST) blockType = "minecraft:ender_chest";
+            else if (block == Blocks.BARREL) blockType = "minecraft:barrel";
+            else if (block.getTranslationKey().contains("bed")) blockType = "minecraft:white_bed"; // Normalize all beds for simplicity or use getTranslationKey() if we want specific color. Let's use string formatting.
+            
+            if (block.getTranslationKey().contains("bed")) {
+                // e.g., block.minecraft.red_bed
+                blockType = "minecraft:" + block.getTranslationKey().replace("block.minecraft.", "");
+            }
 
             if (blockType != null) {
                 double x = pos.getX();
@@ -44,7 +47,7 @@ public class BlockPlaceMixin {
                 ApiClient.sendBlockPlaceEvent(blockType, x, y, z, dimension);
             }
         } catch (Throwable e) {
-            // Never crash the game, catch all throwables including Errors
+            // Never crash the game
         }
     }
 }

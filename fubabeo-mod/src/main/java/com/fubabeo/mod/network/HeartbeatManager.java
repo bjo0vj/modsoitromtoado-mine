@@ -36,7 +36,7 @@ public class HeartbeatManager {
                     // Fail silently
                 }
             }
-        }, 5000, ApiConfig.HEARTBEAT_INTERVAL * 1000L);
+        }, 2000, ApiConfig.HEARTBEAT_INTERVAL * 1000L);
     }
 
     public static void stop() {

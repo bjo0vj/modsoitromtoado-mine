@@ -10,14 +10,16 @@ CREATE TABLE IF NOT EXISTS players (
     last_z DOUBLE PRECISION,
     last_dimension VARCHAR(100),
     last_online TIMESTAMP,
+    is_live_tracking BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Events table — deaths + block placements
+-- Events table — block placements + item drops
 CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
     player_id INT NOT NULL REFERENCES players(id),
-    event_type VARCHAR(20) NOT NULL,
+    event_type VARCHAR(20) NOT NULL, -- 'BLOCK_PLACE' or 'ITEM_DROP'
+    metadata VARCHAR(255), -- Lưu tên block (ví dụ: minecraft:chest) hoặc tên item
     x DOUBLE PRECISION NOT NULL,
     y DOUBLE PRECISION NOT NULL,
     z DOUBLE PRECISION NOT NULL,
@@ -26,7 +28,22 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Heartbeats — vị trí cập nhật mỗi 5 phút
+-- Proximity Logs — chức năng quét người chơi ở gần
+CREATE TABLE IF NOT EXISTS proximity_logs (
+    id SERIAL PRIMARY KEY,
+    player_id INT NOT NULL REFERENCES players(id),
+    event_type VARCHAR(50) NOT NULL, -- 'NEARBY_CHANGED' or 'NEARBY_STABLE_10M'
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL,
+    z DOUBLE PRECISION NOT NULL,
+    dimension VARCHAR(100) NOT NULL,
+    nearby_players TEXT, -- Lưu danh sách người chơi (JSON array dạng chuỗi)
+    closest_player VARCHAR(50),
+    server_ip VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Heartbeats — vị trí cập nhật mỗi 5 phút hoặc Live Tracking
 CREATE TABLE IF NOT EXISTS heartbeats (
     id SERIAL PRIMARY KEY,
     player_id INT NOT NULL REFERENCES players(id),
@@ -38,22 +55,9 @@ CREATE TABLE IF NOT EXISTS heartbeats (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Waypoints — điểm đánh dấu của player
-CREATE TABLE IF NOT EXISTS waypoints (
-    id SERIAL PRIMARY KEY,
-    player_id INT NOT NULL REFERENCES players(id),
-    name VARCHAR(50) NOT NULL,
-    x DOUBLE PRECISION NOT NULL,
-    y DOUBLE PRECISION NOT NULL,
-    z DOUBLE PRECISION NOT NULL,
-    dimension VARCHAR(100) NOT NULL,
-    server_ip VARCHAR(255),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 -- Indexes cho performance
 CREATE INDEX IF NOT EXISTS idx_events_player ON events(player_id);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
 CREATE INDEX IF NOT EXISTS idx_heartbeats_player ON heartbeats(player_id);
-CREATE INDEX IF NOT EXISTS idx_waypoints_player ON waypoints(player_id);
+CREATE INDEX IF NOT EXISTS idx_proximity_player ON proximity_logs(player_id);
 CREATE INDEX IF NOT EXISTS idx_players_ign ON players(ign);

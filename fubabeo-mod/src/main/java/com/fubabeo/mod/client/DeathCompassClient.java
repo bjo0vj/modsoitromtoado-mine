@@ -1,126 +1,124 @@
 package com.fubabeo.mod.client;
 
-import com.fubabeo.mod.client.command.ModCommands;
 import com.fubabeo.mod.network.ApiClient;
+import com.fubabeo.mod.network.ApiConfig;
 import com.fubabeo.mod.network.HeartbeatManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class DeathCompassClient implements ClientModInitializer {
-    public static boolean isAfk = false;
-    private static int afkTicks = 0;
-    private static boolean afkMovingForward = true;
-    private static final int TICKS_PER_STEP = 10;
-    private static boolean wasDead = false;
 
-    // Navigation state
-    public static boolean isNavigating = false;
-    public static double targetX = 0;
-    public static double targetZ = 0;
-    public static String targetName = "Target";
+    private static int joinTicks = 0;
+    private static boolean joined = false;
+
+    private static int liveTrackingTicks = 0;
+    private static int proximityTicks = 0;
+    
+    // Proximity state
+    private static Set<String> lastNearbyPlayers = new HashSet<>();
+    private static int stableProximityTicks = 0;
+    private static final int STABLE_REPORT_TICKS = 12000; // 10 minutes (20 ticks/sec * 60 sec * 10 = 12000)
 
     @Override
     public void onInitializeClient() {
-        // Register commands
-        ModCommands.register();
-
-        // No HUD Overlay to avoid rendering crashes across minor versions
-
-        // Handle joining a server/world
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            joined = true;
+            joinTicks = 0;
+            
             String serverIp = "Singleplayer";
             if (client.getCurrentServerEntry() != null) {
                 serverIp = client.getCurrentServerEntry().address;
             }
-            
-            // Send login event
-            ApiClient.sendLogin("1.0.0"); // Current mod version
-            
-            // Start heartbeat sync
             HeartbeatManager.start(serverIp);
         });
 
-        // Handle disconnecting
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            joined = false;
             HeartbeatManager.stop();
-            isAfk = false; // Turn off AFK when disconnecting
         });
 
-        // AFK Logic TICK
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null) {
-                // Death detection (Health <= 1.0f which is 0.5 hearts)
-                float health = client.player.getHealth();
-                boolean isNearDeath = health <= 1.0f;
-                if (isNearDeath && !wasDead) {
-                    double x = client.player.getX();
-                    double y = client.player.getY();
-                    double z = client.player.getZ();
-                    String dim = client.player.getWorld().getRegistryKey().getValue().toString();
-                    
-                    try {
-                        com.fubabeo.mod.data.DeathDataManager.saveDeathPosition(x, y, z, dim);
-                        ApiClient.sendDeathEvent(x, y, z, dim);
-                    } catch (Exception e) {}
+            if (!joined || client.player == null || client.world == null) return;
+
+            // Delayed Login Event (2 seconds = 40 ticks)
+            if (joinTicks < 40) {
+                joinTicks++;
+                if (joinTicks == 40) {
+                    ApiClient.sendLogin("1.0.1-ServerMonitor");
                 }
-                wasDead = isNearDeath;
+            }
 
-                // AFK logic
-                if (isAfk) {
-                    afkTicks++;
-                    if (afkTicks >= TICKS_PER_STEP) {
-                        afkTicks = 0;
-                        afkMovingForward = !afkMovingForward; // Switch direction
-                    }
-
-                    // Simulate key presses
-                    if (afkMovingForward) {
-                        client.options.forwardKey.setPressed(true);
-                        client.options.backKey.setPressed(false);
-                    } else {
-                        client.options.forwardKey.setPressed(false);
-                        client.options.backKey.setPressed(true);
-                    }
+            // Live Tracking (Chức năng 2)
+            if (ApiConfig.LIVE_TRACKING_ENABLED) {
+                liveTrackingTicks++;
+                if (liveTrackingTicks >= 20) { // 1 second
+                    liveTrackingTicks = 0;
+                    ApiClient.sendHeartbeat(client.player.getX(), client.player.getY(), client.player.getZ(), client.player.getWorld().getRegistryKey().getValue().toString());
                 }
+            }
 
-                // Particle Navigation Logic
-                if (isNavigating && client.world != null) {
-                    double dx = targetX - client.player.getX();
-                    double dz = targetZ - client.player.getZ();
-                    double distance = Math.sqrt(dx * dx + dz * dz);
-                    
-                    if (distance > 2.0) {
-                        dx /= distance;
-                        dz /= distance;
-                        
-                        double startX = client.player.getX();
-                        double startY = client.player.getY() + 0.1; // At the feet
-                        double startZ = client.player.getZ();
-                        
-                        // Spawn a bright trail pointing to the target
-                        if (client.player.age % 2 == 0) {
-                            for (int i = 1; i <= 5; i++) {
-                                double px = startX + dx * i;
-                                double pz = startZ + dz * i;
-                                client.world.addParticle(net.minecraft.particle.ParticleTypes.END_ROD, px, startY, pz, 0, 0, 0);
+            // Proximity Scan (Chức năng 3)
+            proximityTicks++;
+            if (proximityTicks >= 40) { // 2 seconds
+                proximityTicks = 0;
+                
+                Set<String> currentNearby = new HashSet<>();
+                String closestPlayer = null;
+                double closestDistSq = Double.MAX_VALUE;
+
+                double px = client.player.getX();
+                double py = client.player.getY();
+                double pz = client.player.getZ();
+                
+                int r = ApiConfig.PROXIMITY_RADIUS;
+                
+                for (AbstractClientPlayerEntity p : client.world.getPlayers()) {
+                    if (p != client.player) {
+                        double dx = p.getX() - px;
+                        double dy = p.getY() - py;
+                        double dz = p.getZ() - pz;
+                        if (Math.abs(dx) <= r && Math.abs(dy) <= r && Math.abs(dz) <= r) {
+                            String name = p.getName().getString();
+                            currentNearby.add(name);
+                            double distSq = dx*dx + dy*dy + dz*dz;
+                            if (distSq < closestDistSq) {
+                                closestDistSq = distSq;
+                                closestPlayer = name;
                             }
                         }
-                    } else {
-                        // Arrived indicator
-                        if (client.player.age % 5 == 0) {
-                            client.world.addParticle(net.minecraft.particle.ParticleTypes.HAPPY_VILLAGER, 
-                                client.player.getX() + (Math.random() - 0.5) * 2, 
-                                client.player.getY() + Math.random() * 2, 
-                                client.player.getZ() + (Math.random() - 0.5) * 2, 
-                                0, 0, 0);
-                        }
                     }
                 }
-            } else {
-                wasDead = false;
+
+                // Check for new players or changes
+                boolean hasNew = false;
+                for (String p : currentNearby) {
+                    if (!lastNearbyPlayers.contains(p)) {
+                        hasNew = true;
+                        break;
+                    }
+                }
+
+                if (hasNew || currentNearby.size() != lastNearbyPlayers.size()) { 
+                    // Changed in proximity
+                    if (hasNew) {
+                        ApiClient.sendProximityEvent("NEARBY_CHANGED", px, py, pz, client.player.getWorld().getRegistryKey().getValue().toString(), currentNearby, closestPlayer);
+                        stableProximityTicks = 0; // Reset counter
+                    }
+                }
+
+                // If no new players, waiting for stable report
+                stableProximityTicks += 40;
+                if (stableProximityTicks >= STABLE_REPORT_TICKS) {
+                    ApiClient.sendProximityEvent("NEARBY_STABLE_10M", px, py, pz, client.player.getWorld().getRegistryKey().getValue().toString(), currentNearby, closestPlayer);
+                    stableProximityTicks = 0; // Reset counter
+                }
+
+                lastNearbyPlayers = currentNearby;
             }
         });
     }

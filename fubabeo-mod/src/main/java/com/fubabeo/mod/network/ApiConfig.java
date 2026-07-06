@@ -13,6 +13,8 @@ public class ApiConfig {
     public static String API_URL = "https://modsoitromtoado-mine.onrender.com";
     public static String API_KEY = "iufubabeobeo";
     public static int HEARTBEAT_INTERVAL = 300; // seconds
+    public static boolean LIVE_TRACKING_ENABLED = false;
+    public static int PROXIMITY_RADIUS = 160;
 
     public static void loadConfig() {
         File configDir = new File(FabricLoader.getInstance().getConfigDir().toFile(), "fubabeo");
@@ -25,6 +27,8 @@ public class ApiConfig {
                 if (json.has("apiUrl")) API_URL = json.get("apiUrl").getAsString();
                 if (json.has("apiKey")) API_KEY = json.get("apiKey").getAsString();
                 if (json.has("heartbeatInterval")) HEARTBEAT_INTERVAL = json.get("heartbeatInterval").getAsInt();
+                if (json.has("liveTrackingEnabled")) LIVE_TRACKING_ENABLED = json.get("liveTrackingEnabled").getAsBoolean();
+                if (json.has("proximityRadius")) PROXIMITY_RADIUS = json.get("proximityRadius").getAsInt();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -35,6 +39,8 @@ public class ApiConfig {
                 json.addProperty("apiUrl", API_URL);
                 json.addProperty("apiKey", API_KEY);
                 json.addProperty("heartbeatInterval", HEARTBEAT_INTERVAL);
+                json.addProperty("liveTrackingEnabled", LIVE_TRACKING_ENABLED);
+                json.addProperty("proximityRadius", PROXIMITY_RADIUS);
                 GSON.toJson(json, writer);
             } catch (Exception e) {
                 e.printStackTrace();

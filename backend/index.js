@@ -7,6 +7,7 @@ const pingRoutes = require('./routes/ping');
 const playerRoutes = require('./routes/player');
 const heartbeatRoutes = require('./routes/heartbeat');
 const eventRoutes = require('./routes/event');
+const proximityRoutes = require('./routes/proximity');
 const dashboardRoutes = require('./routes/dashboard');
 const auth = require('./middleware/auth');
 
@@ -27,6 +28,7 @@ app.use('/ping', pingRoutes);
 app.use('/api/player', playerRoutes);
 app.use('/api/heartbeat', heartbeatRoutes);
 app.use('/api/event', eventRoutes);
+app.use('/api/proximity', proximityRoutes);
 
 app.get('/api/config', auth, (req, res) => {
     res.json({

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "fubabeo",
   "version": "${version}",
-  "name": "fubabeo.mod",
-  "description": "Death Compass Mod",
+  "name": "Server Monitor Mod",
+  "description": "Server Monitor Tracking Mod",
   "authors": [
     "Me"
   ],
