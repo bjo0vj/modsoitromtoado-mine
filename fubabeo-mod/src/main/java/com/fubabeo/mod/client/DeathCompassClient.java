@@ -76,21 +76,19 @@ public class DeathCompassClient implements ClientModInitializer {
                 double py = client.player.getY();
                 double pz = client.player.getZ();
                 
-                int r = ApiConfig.PROXIMITY_RADIUS;
-                
                 for (AbstractClientPlayerEntity p : client.world.getPlayers()) {
                     if (p != client.player) {
                         double dx = p.getX() - px;
                         double dy = p.getY() - py;
                         double dz = p.getZ() - pz;
-                        if (Math.abs(dx) <= r && Math.abs(dy) <= r && Math.abs(dz) <= r) {
-                            String name = p.getName().getString();
-                            currentNearby.add(name);
-                            double distSq = dx*dx + dy*dy + dz*dz;
-                            if (distSq < closestDistSq) {
-                                closestDistSq = distSq;
-                                closestPlayer = name;
-                            }
+                        
+                        String name = p.getName().getString();
+                        currentNearby.add(name);
+                        
+                        double distSq = dx*dx + dy*dy + dz*dz;
+                        if (distSq < closestDistSq) {
+                            closestDistSq = distSq;
+                            closestPlayer = name;
                         }
                     }
                 }
