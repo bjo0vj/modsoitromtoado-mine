@@ -25,10 +25,11 @@ router.post('/', auth, async (req, res) => {
                 last_z = EXCLUDED.last_z,
                 last_dimension = EXCLUDED.last_dimension,
                 last_online = NOW()
-            RETURNING id;
+            RETURNING id, is_live_tracking;
         `;
         const playerResult = await db.query(playerQuery, [uuid, ign, serverIp, x, y, z, dimension]);
         const playerId = playerResult.rows[0].id;
+        const isLiveTracking = playerResult.rows[0].is_live_tracking;
 
         // Insert heartbeat record
         // Delete old heartbeats for this player to only keep the latest one
@@ -44,7 +45,7 @@ router.post('/', auth, async (req, res) => {
         // Let's log it so we know it's working
         console.log(`[HEARTBEAT] ${ign} is at ${x}, ${y}, ${z} on server [${serverIp}]`);
 
-        return sendSuccess(res, null, 'Heartbeat recorded successfully');
+        return sendSuccess(res, { isLiveTracking: isLiveTracking }, 'Heartbeat recorded successfully');
     } catch (error) {
         return sendError(res, 500, 'Database error recording heartbeat', error);
     }

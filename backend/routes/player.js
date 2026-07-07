@@ -22,7 +22,7 @@ router.post('/login', auth, async (req, res) => {
                 server_ip = EXCLUDED.server_ip,
                 mod_version = EXCLUDED.mod_version,
                 last_online = NOW()
-            RETURNING id, player_uuid, ign;
+            RETURNING id, player_uuid, ign, is_live_tracking;
         `;
         const values = [uuid, ign, serverIp || null, modVersion || null];
         const result = await db.query(query, values);

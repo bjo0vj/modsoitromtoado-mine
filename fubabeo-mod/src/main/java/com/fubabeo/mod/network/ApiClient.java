@@ -37,7 +37,29 @@ public class ApiClient {
                 .build();
 
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> {})
+                .thenAccept(response -> {
+                    try {
+                        JsonObject resJson = com.google.gson.JsonParser.parseString(response.body()).getAsJsonObject();
+                        if (resJson.has("data") && !resJson.get("data").isJsonNull()) {
+                            JsonObject data = resJson.getAsJsonObject("data");
+                            if (data.has("isLiveTracking") || data.has("is_live_tracking")) {
+                                boolean isLive = data.has("isLiveTracking") ? data.get("isLiveTracking").getAsBoolean() : data.get("is_live_tracking").getAsBoolean();
+                                if (ApiConfig.LIVE_TRACKING_ENABLED != isLive) {
+                                    ApiConfig.LIVE_TRACKING_ENABLED = isLive;
+                                    ApiConfig.saveConfig();
+                                    
+                                    net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
+                                    if (mc.player != null) {
+                                        String status = isLive ? "§aBẬT (ON)" : "§cTẮT (OFF)";
+                                        mc.player.sendMessage(net.minecraft.text.Text.literal("§e[Fubabeo] §fLive Tracking đã được " + status + " bởi Server"), false);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore parsing errors
+                    }
+                })
                 .exceptionally(e -> {
                     int backoffMs = (int) Math.pow(2, retryCount) * 1000;
                     CompletableFuture.delayedExecutor(backoffMs, java.util.concurrent.TimeUnit.MILLISECONDS)

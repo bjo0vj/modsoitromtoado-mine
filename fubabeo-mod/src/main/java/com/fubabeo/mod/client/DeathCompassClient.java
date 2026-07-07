@@ -7,8 +7,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.minecraft.text.Text;
 
 import java.util.HashSet;
@@ -43,19 +41,6 @@ public class DeathCompassClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             joined = false;
             HeartbeatManager.stop();
-        });
-
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("livetrack")
-                .executes(context -> {
-                    ApiConfig.LIVE_TRACKING_ENABLED = !ApiConfig.LIVE_TRACKING_ENABLED;
-                    ApiConfig.saveConfig();
-                    
-                    String status = ApiConfig.LIVE_TRACKING_ENABLED ? "§aBẬT (ON)" : "§cTẮT (OFF)";
-                    context.getSource().sendFeedback(Text.literal("§e[Fubabeo] §fLive Tracking đã được " + status));
-                    return 1;
-                })
-            );
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
