@@ -253,8 +253,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if(confirm('Bạn có muốn đăng xuất không?')) {
-                // Trick to clear basic auth in browser
-                window.location.href = window.location.protocol + "//log:out@" + window.location.host;
+                // Trick to clear basic auth in browser without changing URL
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", "/api/dashboard/players", true, "logout", "logout");
+                xmlhttp.send("");
+                xmlhttp.onreadystatechange = function() {
+                    if (xmlhttp.readyState == 4) {
+                        window.location.reload();
+                    }
+                }
             }
         });
     }
