@@ -87,6 +87,7 @@ router.delete('/player/:uuid', async (req, res) => {
         await db.query(`DELETE FROM events WHERE player_id = $1`, [playerId]);
         await db.query(`DELETE FROM heartbeats WHERE player_id = $1`, [playerId]);
         await db.query(`DELETE FROM proximity_logs WHERE player_id = $1`, [playerId]);
+        await db.query(`DELETE FROM commands WHERE player_id = $1`, [playerId]);
         
         // Delete the player
         await db.query(`DELETE FROM players WHERE id = $1`, [playerId]);
