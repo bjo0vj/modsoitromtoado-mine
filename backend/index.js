@@ -10,6 +10,7 @@ const eventRoutes = require('./routes/event');
 const proximityRoutes = require('./routes/proximity');
 const dashboardRoutes = require('./routes/dashboard');
 const auth = require('./middleware/auth');
+const basicAuth = require('./middleware/basicAuth');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,11 +37,11 @@ app.get('/api/config', auth, (req, res) => {
     });
 });
 
-// Dashboard API (public)
-app.use('/api/dashboard', dashboardRoutes);
+// Dashboard API (protected)
+app.use('/api/dashboard', basicAuth, dashboardRoutes);
 
-// Serve Dashboard (Static files)
-app.use(express.static('public'));
+// Serve Dashboard (Static files - protected)
+app.use(basicAuth, express.static('public'));
 
 // Global error handler — prevents unhandled errors from crashing the server
 app.use((err, req, res, next) => {
