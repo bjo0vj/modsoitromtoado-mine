@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "ItemDropMixin",
-    "BlockPlaceMixin"
+    "NetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

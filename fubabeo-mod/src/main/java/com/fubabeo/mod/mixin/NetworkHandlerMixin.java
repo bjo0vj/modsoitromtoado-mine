@@ -8,7 +8,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -16,6 +15,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.minecraft.network.packet.Packet;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public class NetworkHandlerMixin {
@@ -52,10 +53,7 @@ public class NetworkHandlerMixin {
                     }
                     
                     if (blockType != null) {
-                        BlockPos placePos = pos;
-                        if (!state.getMaterial().isReplaceable()) {
-                            placePos = pos.offset(hitResult.getSide());
-                        }
+                        BlockPos placePos = pos.offset(hitResult.getSide());
                         ApiClient.sendBlockPlaceEvent(blockType, placePos.getX(), placePos.getY(), placePos.getZ(), mc.world.getRegistryKey().getValue().toString());
                     }
                 }
