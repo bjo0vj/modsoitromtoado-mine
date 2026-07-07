@@ -91,6 +91,22 @@ body {
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+.logout-btn {
+    background: rgba(244, 63, 94, 0.15);
+    color: var(--danger);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.logout-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
 /* ═══════════════════════════════ PLAYERS SECTION ═══════════════════════════════ */
 .players-section h2 {
     font-size: 1.2rem;

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearDataBtn = document.getElementById('clearDataBtn');
     const liveTrackingToggle = document.getElementById('liveTrackingToggle');
     const trackingStatusText = document.getElementById('trackingStatusText');
+    const logoutBtn = document.getElementById('logoutBtn');
     let currentPlayerUuid = null;
 
     // ══════════════════════════ SANITIZE (XSS protection) ══════════════════════════
@@ -249,6 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ══════════════════════════ MODAL EVENTS ══════════════════════════
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            if(confirm('Bạn có muốn đăng xuất không?')) {
+                // Trick to clear basic auth in browser
+                window.location.href = window.location.protocol + "//log:out@" + window.location.host;
+            }
+        });
+    }
+
     closeModalBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
