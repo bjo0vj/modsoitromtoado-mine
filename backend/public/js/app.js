@@ -58,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginError.innerText = data.message || 'Lỗi đăng nhập';
             }
         } catch (err) {
-            loginError.innerText = 'Không thể kết nối đến server';
+            console.error('Login error:', err);
+            loginError.innerText = 'Lỗi kết nối: ' + (err.message || err);
         }
         loginSubmitBtn.innerText = 'Đăng nhập';
     });
