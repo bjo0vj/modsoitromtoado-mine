@@ -72,20 +72,31 @@
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" data-tab="latest">📍 Vị Trí Gần Nhất</button>
-                <button class="tab-btn" data-tab="blocks">📦 Nhật Ký Block</button>
-                <button class="tab-btn" data-tab="proximity">👥 Ai Ở Gần (Proximity)</button>
+                <button class="tab-btn active" data-tab="latest">📍 Vị Trí</button>
+                <button class="tab-btn" data-tab="blocks_online">📦 Block (Online)</button>
+                <button class="tab-btn" data-tab="blocks_offline">📦 Block (Offline)</button>
+                <button class="tab-btn" data-tab="proximity">👥 Ai Ở Gần</button>
             </div>
 
             <div class="tab-content">
-                <div id="tab-latest" class="tab-pane active">
-                    <!-- Dynamic content -->
+                <!-- Tab 1: Vị Trí -->
+                <div class="tab-pane active" id="tab-latest">
+                    <!-- Populated by JS -->
                 </div>
-                <div id="tab-blocks" class="tab-pane">
-                    <!-- Dynamic content -->
+
+                <!-- Tab 2: Block (Online) -->
+                <div class="tab-pane" id="tab-blocks_online">
+                    <!-- Populated by JS -->
                 </div>
-                <div id="tab-proximity" class="tab-pane">
-                    <!-- Dynamic content -->
+
+                <!-- Tab 3: Block (Offline) -->
+                <div class="tab-pane" id="tab-blocks_offline">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Tab 4: Ai Ở Gần -->
+                <div class="tab-pane" id="tab-proximity">
+                    <!-- Populated by JS -->
                 </div>
             </div>
         </div>

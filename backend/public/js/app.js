@@ -230,11 +230,15 @@ document.addEventListener('DOMContentLoaded', () => {
             latestTab.innerHTML = '<div class="empty-state"><span class="icon">📡</span>No location data yet.</div>';
         }
 
-        // ── Tab 2: Blocks ──
-        const blocks = data.events; // All events now
-        document.getElementById('tab-blocks').innerHTML = renderEventTable(blocks, 'events');
+        // ── Tab 2: Blocks (Online) ──
+        const onlineBlocks = data.events.filter(e => e.server_ip !== 'Singleplayer');
+        document.getElementById('tab-blocks_online').innerHTML = renderEventTable(onlineBlocks, 'events');
 
-        // ── Tab 3: Proximity Logs ──
+        // ── Tab 3: Blocks (Offline) ──
+        const offlineBlocks = data.events.filter(e => e.server_ip === 'Singleplayer');
+        document.getElementById('tab-blocks_offline').innerHTML = renderEventTable(offlineBlocks, 'events');
+
+        // ── Tab 4: Proximity Logs ──
         const proximityLogs = data.proximity_logs || [];
         document.getElementById('tab-proximity').innerHTML = renderProximityTable(proximityLogs, 'proximity_logs');
 

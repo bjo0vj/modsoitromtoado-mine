@@ -18,10 +18,10 @@ public class BlockPlaceMixin {
     private void onBlockPlace(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         try {
             ActionResult result = cir.getReturnValue();
-            String resStr = result != null ? result.toString() : "";
-            if (resStr.contains("FAIL") || resStr.contains("PASS")) return;
+            if (result == null || !result.isAccepted()) return;
 
             World world = context.getWorld();
+            if (!world.isClient()) return; // Only send from the client side to avoid double-logging in Singleplayer
             if (context.getPlayer() == null) return;
 
             BlockPos pos = context.getBlockPos();
