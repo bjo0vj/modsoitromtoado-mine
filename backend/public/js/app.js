@@ -255,7 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return `<div class="empty-state"><span class="icon">📦</span>No block events yet.</div>`;
         }
 
-        let html = '<table class="data-table"><thead><tr>';
+        let html = `<div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                        <button class="delete-item-btn" style="padding: 5px 10px;" onclick="clearTab('${tableType}')">🧹 Xóa sạch mục này</button>
+                    </div>`;
+        html += '<table class="data-table"><thead><tr>';
         html += '<th>Block/Event</th><th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
@@ -278,7 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return '<div class="empty-state"><span class="icon">👥</span>No nearby players recorded.</div>';
         }
 
-        let html = '<table class="data-table"><thead><tr><th>Event</th><th>Nearby Players</th><th>Closest</th><th>Coordinates</th><th>Time</th><th>Action</th></tr></thead><tbody>';
+        let html = `<div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                        <button class="delete-item-btn" style="padding: 5px 10px;" onclick="clearTab('${tableType}')">🧹 Xóa sạch mục này</button>
+                    </div>`;
+        html += '<table class="data-table"><thead><tr><th>Event</th><th>Nearby Players</th><th>Closest</th><th>Coordinates</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
             html += `<tr>`;
@@ -324,6 +330,30 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Lỗi khi xóa:', error);
             alert('Có lỗi xảy ra khi xóa!');
+        }
+    };
+
+    window.clearTab = async function(tableType) {
+        if (!currentPlayerUuid) return;
+        if (!confirm('Bạn có chắc muốn xóa TOÀN BỘ dữ liệu ở mục này không? Hành động này không thể hoàn tác!')) return;
+        
+        try {
+            const res = await fetch(`/api/dashboard/player/${encodeURIComponent(currentPlayerUuid)}/clear/${tableType}`, { 
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (handleAuthError(res)) return;
+            const data = await res.json();
+            if (data.success) {
+                if (currentPlayerUuid) {
+                    openPlayerModal(currentPlayerUuid);
+                }
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi xóa tab:', error);
+            alert('Có lỗi xảy ra khi xóa dữ liệu!');
         }
     };
 

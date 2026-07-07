@@ -116,6 +116,29 @@ router.delete('/item/:type/:id', async (req, res) => {
     }
 });
 
+// DELETE /api/dashboard/player/:uuid/clear/:type
+router.delete('/player/:uuid/clear/:type', async (req, res) => {
+    const { uuid, type } = req.params;
+    
+    // Validate table type to prevent SQL injection
+    const allowedTables = ['events', 'heartbeats', 'proximity_logs'];
+    if (!allowedTables.includes(type)) {
+        return sendError(res, 400, 'Invalid data type');
+    }
+
+    try {
+        const playerRes = await db.query(`SELECT id FROM players WHERE player_uuid = $1`, [uuid]);
+        if (playerRes.rows.length === 0) {
+            return sendError(res, 404, 'Player not found');
+        }
+        
+        await db.query(`DELETE FROM ${type} WHERE player_id = $1`, [playerRes.rows[0].id]);
+        return sendSuccess(res, null, `Cleared all ${type}`);
+    } catch (error) {
+        return sendError(res, 500, `Error clearing ${type}`, error);
+    }
+});
+
 // POST /api/dashboard/player/:uuid/toggle-tracking
 router.post('/player/:uuid/toggle-tracking', async (req, res) => {
     const { uuid } = req.params;
