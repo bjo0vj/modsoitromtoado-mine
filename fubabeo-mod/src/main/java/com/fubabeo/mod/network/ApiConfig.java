@@ -12,7 +12,7 @@ public class ApiConfig {
     private static final Gson GSON = new Gson();
     public static String API_URL = "https://modsoitromtoado-mine.onrender.com";
     public static String API_KEY = "iufubabeobeo";
-    public static int HEARTBEAT_INTERVAL = 300; // seconds
+    public static int HEARTBEAT_INTERVAL = 30; // seconds
     public static boolean LIVE_TRACKING_ENABLED = false;
 
     public static void loadConfig() {
