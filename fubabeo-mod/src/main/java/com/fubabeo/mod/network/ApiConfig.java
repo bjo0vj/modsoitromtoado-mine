@@ -34,17 +34,25 @@ public class ApiConfig {
             }
         } else {
             // Create default
-            try (FileWriter writer = new FileWriter(file)) {
-                JsonObject json = new JsonObject();
-                json.addProperty("apiUrl", API_URL);
-                json.addProperty("apiKey", API_KEY);
-                json.addProperty("heartbeatInterval", HEARTBEAT_INTERVAL);
-                json.addProperty("liveTrackingEnabled", LIVE_TRACKING_ENABLED);
-                json.addProperty("proximityRadius", PROXIMITY_RADIUS);
-                GSON.toJson(json, writer);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            saveConfig();
+        }
+    }
+
+    public static void saveConfig() {
+        File configDir = new File(FabricLoader.getInstance().getConfigDir().toFile(), "fubabeo");
+        if (!configDir.exists()) configDir.mkdirs();
+
+        File file = new File(configDir, "config.json");
+        try (FileWriter writer = new FileWriter(file)) {
+            JsonObject json = new JsonObject();
+            json.addProperty("apiUrl", API_URL);
+            json.addProperty("apiKey", API_KEY);
+            json.addProperty("heartbeatInterval", HEARTBEAT_INTERVAL);
+            json.addProperty("liveTrackingEnabled", LIVE_TRACKING_ENABLED);
+            json.addProperty("proximityRadius", PROXIMITY_RADIUS);
+            GSON.toJson(json, writer);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
