@@ -26,7 +26,13 @@ router.post('/block_place', auth, async (req, res) => {
     }
 
     // Validate blockType whitelist
-    const validTypes = ['minecraft:chest', 'minecraft:barrel', 'minecraft:ender_chest', 'minecraft:enchanting_table', 'minecraft:white_bed', 'minecraft:red_bed', 'minecraft:black_bed', 'minecraft:blue_bed', 'minecraft:brown_bed', 'minecraft:cyan_bed', 'minecraft:gray_bed', 'minecraft:green_bed', 'minecraft:light_blue_bed', 'minecraft:light_gray_bed', 'minecraft:lime_bed', 'minecraft:magenta_bed', 'minecraft:orange_bed', 'minecraft:pink_bed', 'minecraft:purple_bed', 'minecraft:yellow_bed'];
+    const validTypes = [
+        'minecraft:chest', 'minecraft:barrel', 'minecraft:ender_chest', 'minecraft:enchanting_table', 
+        'minecraft:white_bed', 'minecraft:red_bed', 'minecraft:black_bed', 'minecraft:blue_bed', 'minecraft:brown_bed', 
+        'minecraft:cyan_bed', 'minecraft:gray_bed', 'minecraft:green_bed', 'minecraft:light_blue_bed', 'minecraft:light_gray_bed', 
+        'minecraft:lime_bed', 'minecraft:magenta_bed', 'minecraft:orange_bed', 'minecraft:pink_bed', 'minecraft:purple_bed', 'minecraft:yellow_bed',
+        'OPEN:chest', 'OPEN:ender_chest', 'OPEN:barrel'
+    ];
     if (!validTypes.includes(blockType)) {
         return sendError(res, 400, `Invalid block type: ${blockType}`);
     }

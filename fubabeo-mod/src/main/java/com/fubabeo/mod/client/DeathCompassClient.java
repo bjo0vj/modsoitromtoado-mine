@@ -57,7 +57,7 @@ public class DeathCompassClient implements ClientModInitializer {
             // Live Tracking (Chức năng 2)
             if (ApiConfig.LIVE_TRACKING_ENABLED) {
                 liveTrackingTicks++;
-                if (liveTrackingTicks >= 20) { // 1 second
+                if (liveTrackingTicks >= 100) { // 5 seconds
                     liveTrackingTicks = 0;
                     ApiClient.sendHeartbeat(client.player.getX(), client.player.getY(), client.player.getZ(), client.player.getWorld().getRegistryKey().getValue().toString());
                 }
