@@ -30,6 +30,7 @@ public class BlockPlaceMixin {
             String blockType = null;
             if (block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) blockType = "minecraft:chest";
             else if (block == Blocks.ENDER_CHEST) blockType = "minecraft:ender_chest";
+            else if (block == Blocks.ENCHANTING_TABLE) blockType = "minecraft:enchanting_table";
             else if (block == Blocks.BARREL) blockType = "minecraft:barrel";
             else if (block.getTranslationKey().contains("bed")) blockType = "minecraft:white_bed"; // Normalize all beds for simplicity or use getTranslationKey() if we want specific color. Let's use string formatting.
             

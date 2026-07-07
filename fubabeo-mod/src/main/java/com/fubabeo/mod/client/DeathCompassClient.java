@@ -83,6 +83,13 @@ public class DeathCompassClient implements ClientModInitializer {
                         double dz = p.getZ() - pz;
                         
                         String name = p.getName().getString();
+                        
+                        // Filter out fake players (NPCs, Citizens, Holograms)
+                        // Valid Minecraft names are 3-16 chars, alphanumeric and underscore
+                        if (!name.matches("^[a-zA-Z0-9_]{3,16}$")) {
+                            continue;
+                        }
+
                         currentNearby.add(name);
                         
                         double distSq = dx*dx + dy*dy + dz*dz;
