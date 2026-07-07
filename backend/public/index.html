@@ -41,28 +41,31 @@
                 <div class="player-info">
                     <h2 id="modalIgn">PlayerName</h2>
                     <p id="modalServer" class="server-badge">Server IP</p>
+                    <div class="tracking-toggle">
+                        <label class="switch">
+                          <input type="checkbox" id="liveTrackingToggle">
+                          <span class="slider round"></span>
+                        </label>
+                        <span id="trackingStatusText">Live Tracking: OFF</span>
+                    </div>
                 </div>
                 <button id="clearDataBtn" class="clear-data-btn">🗑️ Xóa Dữ Liệu</button>
             </div>
 
             <div class="tabs">
-                <button class="tab-btn active" data-tab="latest">📍 Latest Position</button>
-                <button class="tab-btn" data-tab="deaths">💀 Deaths</button>
-                <button class="tab-btn" data-tab="blocks">📦 Blocks</button>
-                <button class="tab-btn" data-tab="waypoints">🚩 Waypoints</button>
+                <button class="tab-btn active" data-tab="latest">📍 Vị Trí Gần Nhất</button>
+                <button class="tab-btn" data-tab="blocks">📦 Nhật Ký Block</button>
+                <button class="tab-btn" data-tab="proximity">👥 Ai Ở Gần (Proximity)</button>
             </div>
 
             <div class="tab-content">
                 <div id="tab-latest" class="tab-pane active">
                     <!-- Dynamic content -->
                 </div>
-                <div id="tab-deaths" class="tab-pane">
-                    <!-- Dynamic content -->
-                </div>
                 <div id="tab-blocks" class="tab-pane">
                     <!-- Dynamic content -->
                 </div>
-                <div id="tab-waypoints" class="tab-pane">
+                <div id="tab-proximity" class="tab-pane">
                     <!-- Dynamic content -->
                 </div>
             </div>

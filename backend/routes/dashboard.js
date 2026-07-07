@@ -8,7 +8,7 @@ router.get('/players', async (req, res) => {
     try {
         const query = `
             SELECT id, player_uuid, ign, server_ip, mod_version, 
-                   last_x, last_y, last_z, last_dimension, last_online 
+                   last_x, last_y, last_z, last_dimension, last_online, is_live_tracking 
             FROM players
             ORDER BY last_online DESC NULLS LAST
         `;
@@ -43,14 +43,14 @@ router.get('/player/:uuid', async (req, res) => {
         `;
         const eventsRes = await db.query(eventsQuery, [playerId]);
 
-        // Fetch waypoints
-        const waypointsQuery = `
-            SELECT id, name, x, y, z, dimension, server_ip, created_at 
-            FROM waypoints 
+        // Fetch proximity logs
+        const proximityQuery = `
+            SELECT id, event_type, x, y, z, dimension, server_ip, nearby_players, closest_player, created_at 
+            FROM proximity_logs 
             WHERE player_id = $1 
             ORDER BY created_at DESC
         `;
-        const waypointsRes = await db.query(waypointsQuery, [playerId]);
+        const proximityRes = await db.query(proximityQuery, [playerId]);
 
         // Fetch latest heartbeats
         const heartbeatsQuery = `
@@ -65,7 +65,7 @@ router.get('/player/:uuid', async (req, res) => {
         return sendSuccess(res, {
             player,
             events: eventsRes.rows,
-            waypoints: waypointsRes.rows,
+            proximity_logs: proximityRes.rows,
             heartbeats: hbRes.rows
         }, 'Player details retrieved');
     } catch (error) {
@@ -86,7 +86,6 @@ router.delete('/player/:uuid', async (req, res) => {
         // Delete all related data first
         await db.query(`DELETE FROM events WHERE player_id = $1`, [playerId]);
         await db.query(`DELETE FROM heartbeats WHERE player_id = $1`, [playerId]);
-        await db.query(`DELETE FROM waypoints WHERE player_id = $1`, [playerId]);
         await db.query(`DELETE FROM proximity_logs WHERE player_id = $1`, [playerId]);
         
         // Delete the player
@@ -103,7 +102,7 @@ router.delete('/item/:type/:id', async (req, res) => {
     const { type, id } = req.params;
     
     // Validate table type to prevent SQL injection
-    const allowedTables = ['events', 'heartbeats', 'waypoints'];
+    const allowedTables = ['events', 'heartbeats', 'proximity_logs'];
     if (!allowedTables.includes(type)) {
         return sendError(res, 400, 'Invalid data type');
     }
@@ -113,6 +112,23 @@ router.delete('/item/:type/:id', async (req, res) => {
         return sendSuccess(res, null, `Item deleted successfully from ${type}`);
     } catch (error) {
         return sendError(res, 500, `Error deleting item from ${type}`, error);
+    }
+});
+
+// POST /api/dashboard/player/:uuid/toggle-tracking
+router.post('/player/:uuid/toggle-tracking', async (req, res) => {
+    const { uuid } = req.params;
+    const { enabled } = req.body;
+    
+    if (enabled === undefined) {
+        return sendError(res, 400, 'Missing enabled boolean');
+    }
+    
+    try {
+        await db.query(`UPDATE players SET is_live_tracking = $1 WHERE player_uuid = $2`, [enabled, uuid]);
+        return sendSuccess(res, null, `Live tracking set to ${enabled}`);
+    } catch (error) {
+        return sendError(res, 500, 'Error toggling live tracking', error);
     }
 });
 

@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.getElementById('closeModal');
     const tabBtns = document.querySelectorAll('.tab-btn');
     const clearDataBtn = document.getElementById('clearDataBtn');
+    const liveTrackingToggle = document.getElementById('liveTrackingToggle');
+    const trackingStatusText = document.getElementById('trackingStatusText');
     let currentPlayerUuid = null;
 
     // ══════════════════════════ SANITIZE (XSS protection) ══════════════════════════
@@ -120,6 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modalIgn').textContent = player.ign;
         document.getElementById('modalAvatar').src = `https://mc-heads.net/avatar/${encodeURIComponent(player.ign)}/100`;
         document.getElementById('modalServer').textContent = player.server_ip || 'Unknown Server';
+        
+        // Live Tracking Toggle
+        liveTrackingToggle.checked = player.is_live_tracking === true;
+        trackingStatusText.textContent = player.is_live_tracking ? "Live Tracking: ON" : "Live Tracking: OFF";
+        trackingStatusText.style.color = player.is_live_tracking ? "#4caf50" : "#888";
 
         // ── Tab 1: Latest Position ──
         const latestTab = document.getElementById('tab-latest');
@@ -152,16 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
             latestTab.innerHTML = '<div class="empty-state"><span class="icon">📡</span>No location data yet.</div>';
         }
 
-        // ── Tab 2: Deaths ──
-        const deaths = events.filter(e => e.event_type === 'death');
-        document.getElementById('tab-deaths').innerHTML = renderEventTable(deaths, false, 'events');
+        // ── Tab 2: Blocks ──
+        const blocks = data.events; // All events now
+        document.getElementById('tab-blocks').innerHTML = renderEventTable(blocks, 'events');
 
-        // ── Tab 3: Blocks ──
-        const blocks = events.filter(e => e.event_type !== 'death');
-        document.getElementById('tab-blocks').innerHTML = renderEventTable(blocks, true, 'events');
-
-        // ── Tab 4: Waypoints ──
-        document.getElementById('tab-waypoints').innerHTML = renderWaypointTable(waypoints, 'waypoints');
+        // ── Tab 3: Proximity Logs ──
+        const proximityLogs = data.proximity_logs || [];
+        document.getElementById('tab-proximity').innerHTML = renderProximityTable(proximityLogs, 'proximity_logs');
 
         // Reset to first tab
         tabBtns.forEach(b => b.classList.remove('active'));
@@ -171,23 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ══════════════════════════ TABLE RENDERERS ══════════════════════════
-    function renderEventTable(items, showType, tableType) {
-        if (items.length === 0) {
-            const icon = showType ? '📦' : '💀';
-            const text = showType ? 'No block events yet.' : 'No deaths recorded.';
-            return `<div class="empty-state"><span class="icon">${icon}</span>${text}</div>`;
+    function renderEventTable(items, tableType) {
+        if (!items || items.length === 0) {
+            return `<div class="empty-state"><span class="icon">📦</span>No block events yet.</div>`;
         }
 
         let html = '<table class="data-table"><thead><tr>';
-        if (showType) html += '<th>Type</th>';
-        html += '<th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
+        html += '<th>Block/Event</th><th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
             html += '<tr>';
-            if (showType) {
-                const badge = formatEventBadge(item.event_type);
-                html += `<td>${badge}</td>`;
-            }
+            const badge = `<span class="event-badge block">📦 ${escapeHtml(item.metadata || item.event_type)}</span>`;
+            html += `<td>${badge}</td>`;
             html += `<td><span class="coord">${Math.round(item.x)}, ${Math.round(item.y)}, ${Math.round(item.z)}</span></td>`;
             html += `<td>${escapeHtml((item.dimension || '').replace('minecraft:', ''))}</td>`;
             html += `<td><span class="time-ago">${timeAgo(item.created_at)}</span></td>`;
@@ -199,18 +198,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    function renderWaypointTable(items, tableType) {
-        if (items.length === 0) {
-            return '<div class="empty-state"><span class="icon">🚩</span>No waypoints saved.</div>';
+    function renderProximityTable(items, tableType) {
+        if (!items || items.length === 0) {
+            return '<div class="empty-state"><span class="icon">👥</span>No nearby players recorded.</div>';
         }
 
-        let html = '<table class="data-table"><thead><tr><th>Name</th><th>Coordinates</th><th>Dimension</th><th>Time</th><th>Action</th></tr></thead><tbody>';
+        let html = '<table class="data-table"><thead><tr><th>Event</th><th>Nearby Players</th><th>Closest</th><th>Coordinates</th><th>Time</th><th>Action</th></tr></thead><tbody>';
 
         items.forEach(item => {
             html += `<tr>`;
-            html += `<td><strong>📍 ${escapeHtml(item.name)}</strong></td>`;
+            html += `<td><strong>${item.event_type === 'NEARBY_CHANGED' ? '🔴 Phát hiện mới' : '🟢 Báo cáo 10p'}</strong></td>`;
+            
+            let playersList = '';
+            try {
+                const parsed = JSON.parse(item.nearby_players);
+                playersList = Array.isArray(parsed) ? parsed.join(', ') : item.nearby_players;
+            } catch (e) {
+                playersList = item.nearby_players;
+            }
+            
+            html += `<td>${escapeHtml(playersList)}</td>`;
+            html += `<td>${escapeHtml(item.closest_player || 'N/A')}</td>`;
             html += `<td><span class="coord">${Math.round(item.x)}, ${Math.round(item.y)}, ${Math.round(item.z)}</span></td>`;
-            html += `<td>${escapeHtml((item.dimension || '').replace('minecraft:', ''))}</td>`;
             html += `<td><span class="time-ago">${timeAgo(item.created_at)}</span></td>`;
             html += `<td><button class="delete-item-btn" onclick="deleteItem('${tableType}', ${item.id})">❌</button></td>`;
             html += `</tr>`;
@@ -218,18 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += '</tbody></table>';
         return html;
-    }
-
-    function formatEventBadge(type) {
-        const types = {
-            'bed': ['🛏️', 'Bed', 'block'],
-            'chest': ['📦', 'Chest', 'block'],
-            'ender_chest': ['🔮', 'Ender Chest', 'block'],
-            'enchanting_table': ['✨', 'Enchant Table', 'block'],
-            'shulker_box': ['🎒', 'Shulker', 'block']
-        };
-        const [icon, label, cls] = types[type] || ['❓', type, 'block'];
-        return `<span class="event-badge ${cls}">${icon} ${escapeHtml(label)}</span>`;
     }
 
     window.deleteItem = async function(tableType, id) {
@@ -279,6 +276,33 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error clearing data', error);
             alert('Có lỗi xảy ra khi xóa dữ liệu!');
+        }
+    });
+
+    liveTrackingToggle.addEventListener('change', async (e) => {
+        if (!currentPlayerUuid) return;
+        const enabled = e.target.checked;
+        
+        trackingStatusText.textContent = enabled ? "Live Tracking: ON" : "Live Tracking: OFF";
+        trackingStatusText.style.color = enabled ? "#4caf50" : "#888";
+
+        try {
+            const res = await fetch(`/api/dashboard/player/${encodeURIComponent(currentPlayerUuid)}/toggle-tracking`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ enabled })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                alert('Lỗi: ' + data.message);
+                e.target.checked = !enabled; // revert
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Có lỗi xảy ra khi bật tắt live tracking!');
+            e.target.checked = !enabled; // revert
         }
     });
 
