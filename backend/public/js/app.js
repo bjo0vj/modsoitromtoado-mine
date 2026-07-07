@@ -10,7 +10,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveTrackingToggle = document.getElementById('liveTrackingToggle');
     const trackingStatusText = document.getElementById('trackingStatusText');
     const logoutBtn = document.getElementById('logoutBtn');
+
+    // Login Elements
+    const loginOverlay = document.getElementById('loginOverlay');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+    const loginError = document.getElementById('loginError');
+
     let currentPlayerUuid = null;
+    let authToken = localStorage.getItem('fubabeo_token') || null;
+
+    // Check auth on load
+    setInterval(() => {
+            if (authToken && !modal.classList.contains('active')) {
+                fetchPlayers();
+            }
+    }, 5000);
+
+    // Initial load will happen after login
+    if (authToken) {
+        loginOverlay.classList.add('hidden');
+        fetchPlayers();
+    }
+
+    // Login Logic
+    loginSubmitBtn.addEventListener('click', async () => {
+        const username = loginUsername.value.trim();
+        const password = loginPassword.value.trim();
+        if (!username || !password) return;
+
+        loginSubmitBtn.innerText = 'Đang xử lý...';
+        try {
+            const res = await fetch('/api/dashboard/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                authToken = data.token;
+                localStorage.setItem('fubabeo_token', authToken);
+                loginOverlay.classList.add('hidden');
+                loginError.innerText = '';
+                fetchPlayers();
+            } else {
+                loginError.innerText = data.message || 'Lỗi đăng nhập';
+            }
+        } catch (err) {
+            loginError.innerText = 'Không thể kết nối đến server';
+        }
+        loginSubmitBtn.innerText = 'Đăng nhập';
+    });
+
+    // Helper to get headers
+    function getAuthHeaders() {
+        return { 'Authorization': `Bearer ${authToken}` };
+    }
+
+    // Handle Auth Error
+    function handleAuthError(res) {
+        if (res.status === 401) {
+            localStorage.removeItem('fubabeo_token');
+            authToken = null;
+            loginOverlay.classList.remove('hidden');
+            return true;
+        }
+        return false;
+    }
 
     // ══════════════════════════ SANITIZE (XSS protection) ══════════════════════════
     function escapeHtml(str) {
@@ -46,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ══════════════════════════ FETCH & RENDER PLAYERS ══════════════════════════
     async function fetchPlayers() {
         try {
-            const res = await fetch('/api/dashboard/players');
+            const res = await fetch('/api/dashboard/players', { headers: getAuthHeaders() });
+            if (handleAuthError(res)) return;
             const data = await res.json();
             if (data.success) {
                 allPlayers = data.data;
@@ -96,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ══════════════════════════ MODAL ══════════════════════════
     async function openPlayerModal(uuid) {
         try {
-            const res = await fetch(`/api/dashboard/player/${encodeURIComponent(uuid)}`);
+            const res = await fetch(`/api/dashboard/player/${encodeURIComponent(uuid)}`, { headers: getAuthHeaders() });
+            if (handleAuthError(res)) return;
             const data = await res.json();
 
             if (data.success) {
@@ -233,7 +302,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteItem = async function(tableType, id) {
         if (!confirm('Bạn có chắc muốn xóa mục này không?')) return;
         try {
-            const res = await fetch(`/api/dashboard/item/${tableType}/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/dashboard/item/${tableType}/${id}`, { 
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (handleAuthError(res)) return;
             const data = await res.json();
             if (data.success) {
                 // Refresh current modal data
@@ -253,15 +326,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if(confirm('Bạn có muốn đăng xuất không?')) {
-                // Trick to clear basic auth in browser without changing URL
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", "/api/dashboard/players", true, "logout", "logout");
-                xmlhttp.send("");
-                xmlhttp.onreadystatechange = function() {
-                    if (xmlhttp.readyState == 4) {
-                        window.location.reload();
-                    }
-                }
+                localStorage.removeItem('fubabeo_token');
+                window.location.reload();
             }
         });
     }
@@ -280,8 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const res = await fetch(`/api/dashboard/player/${encodeURIComponent(currentPlayerUuid)}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: getAuthHeaders()
             });
+            if (handleAuthError(res)) return;
             const data = await res.json();
             if (data.success) {
                 alert('Đã xóa dữ liệu thành công!');
@@ -307,11 +375,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`/api/dashboard/player/${encodeURIComponent(currentPlayerUuid)}/toggle-tracking`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
                 },
                 body: JSON.stringify({ enabled })
             });
             const data = await res.json();
+            if (handleAuthError(res)) return;
             if (!data.success) {
                 alert('Lỗi: ' + data.message);
                 e.target.checked = !enabled; // revert
@@ -332,7 +402,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ══════════════════════════ INIT ══════════════════════════
-    fetchPlayers();
-    setInterval(fetchPlayers, 30000);
+    // Init is handled by the check auth on load logic
 });

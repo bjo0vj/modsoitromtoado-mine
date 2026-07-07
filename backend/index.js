@@ -10,7 +10,7 @@ const eventRoutes = require('./routes/event');
 const proximityRoutes = require('./routes/proximity');
 const dashboardRoutes = require('./routes/dashboard');
 const auth = require('./middleware/auth');
-const basicAuth = require('./middleware/basicAuth');
+const tokenAuth = require('./middleware/tokenAuth');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -37,11 +37,22 @@ app.get('/api/config', auth, (req, res) => {
     });
 });
 
-// Dashboard API (protected)
-app.use('/api/dashboard', basicAuth, dashboardRoutes);
+// Dashboard Login API
+app.post('/api/dashboard/login', (req, res) => {
+    const { username, password } = req.body;
+    // Hardcoded credentials as requested
+    if (username === 'zuy' && password === '3667') {
+        res.json({ success: true, token: 'fubabeo-admin-token-3667' });
+    } else {
+        res.status(401).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
+    }
+});
 
-// Serve Dashboard (Static files - protected)
-app.use(basicAuth, express.static('public'));
+// Dashboard API (protected by tokenAuth)
+app.use('/api/dashboard', tokenAuth, dashboardRoutes);
+
+// Serve Dashboard (Static files - no longer blocked by basicAuth)
+app.use(express.static('public'));
 
 // Global error handler — prevents unhandled errors from crashing the server
 app.use((err, req, res, next) => {

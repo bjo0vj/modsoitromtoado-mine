@@ -107,6 +107,78 @@ body {
     color: white;
 }
 
+/* ═══════════════════════════════ LOGIN OVERLAY ═══════════════════════════════ */
+.login-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(10px);
+}
+.login-overlay.hidden {
+    display: none;
+}
+.login-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 40px;
+    border-radius: 20px;
+    width: 350px;
+    box-shadow: var(--shadow-card), var(--shadow-glow);
+    text-align: center;
+}
+.login-header {
+    margin-bottom: 24px;
+}
+.login-header .icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+}
+.login-header h2 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+.login-form input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.3s ease;
+}
+.login-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.login-form button {
+    width: 100%;
+    padding: 12px;
+    background: var(--gradient-1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+.login-form button:hover {
+    opacity: 0.9;
+}
+.login-error {
+    color: var(--danger);
+    margin-top: 12px;
+    font-size: 0.85rem;
+    min-height: 20px;
+}
+
 /* ═══════════════════════════════ PLAYERS SECTION ═══════════════════════════════ */
 .players-section h2 {
     font-size: 1.2rem;
