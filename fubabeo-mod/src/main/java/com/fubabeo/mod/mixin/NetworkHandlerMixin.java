@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.network.packet.Packet;
 
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(net.minecraft.network.ClientConnection.class)
 public class NetworkHandlerMixin {
-    @Inject(method = "sendPacket", at = @At("HEAD"))
+    @Inject(method = { "send", "method_10743" }, at = @At("HEAD"))
     private void onSendPacket(Packet<?> packet, CallbackInfo ci) {
         try {
             if (packet instanceof PlayerInteractBlockC2SPacket) {

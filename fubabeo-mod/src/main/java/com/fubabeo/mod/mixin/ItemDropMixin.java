@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientPlayerEntity.class)
 public class ItemDropMixin {
-    @Inject(method = "dropSelectedItem(Z)Z", at = @At("HEAD"))
+    @Inject(method = { "dropSelectedItem", "method_7290" }, at = @At("HEAD"))
     private void onDropSelectedItem(boolean dropAll, CallbackInfoReturnable<Boolean> cir) {
         try {
             ClientPlayerEntity player = (ClientPlayerEntity) (Object) this;
