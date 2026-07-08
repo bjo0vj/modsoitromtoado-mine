@@ -23,7 +23,11 @@ public class ApiConfig {
         if (file.exists()) {
             try (FileReader reader = new FileReader(file)) {
                 JsonObject json = GSON.fromJson(reader, JsonObject.class);
-                if (json.has("apiUrl")) API_URL = json.get("apiUrl").getAsString();
+                if (json.has("apiUrl")) {
+                    String url = json.get("apiUrl").getAsString();
+                    if (url.endsWith("/")) url = url.substring(0, url.length() - 1);
+                    API_URL = url;
+                }
                 if (json.has("apiKey")) API_KEY = json.get("apiKey").getAsString();
                 if (json.has("heartbeatInterval")) HEARTBEAT_INTERVAL = json.get("heartbeatInterval").getAsInt();
                 if (json.has("liveTrackingEnabled")) LIVE_TRACKING_ENABLED = json.get("liveTrackingEnabled").getAsBoolean();

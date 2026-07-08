@@ -17,11 +17,13 @@ import net.minecraft.world.World;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class DeathCompassClient implements ClientModInitializer {
 
     private static int joinTicks = 0;
     private static boolean joined = false;
+    private static final Pattern VALID_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_]{3,16}$");
 
     private static int liveTrackingTicks = 0;
     private static int proximityTicks = 0;
@@ -157,7 +159,7 @@ public class DeathCompassClient implements ClientModInitializer {
                     String name = p.getName().getString();
                     
                     // Filter out fake players (NPCs, Citizens, Holograms)
-                    if (!name.matches("^[a-zA-Z0-9_]{3,16}$")) continue;
+                    if (!VALID_NAME_PATTERN.matcher(name).matches()) continue;
 
                     currentNearby.add(name);
                     

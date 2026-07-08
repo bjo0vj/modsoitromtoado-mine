@@ -14,6 +14,14 @@ CREATE TABLE IF NOT EXISTS players (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE players ADD COLUMN IF NOT EXISTS server_ip VARCHAR(255);
+ALTER TABLE players ADD COLUMN IF NOT EXISTS mod_version VARCHAR(20);
+ALTER TABLE players ADD COLUMN IF NOT EXISTS last_x DOUBLE PRECISION;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS last_y DOUBLE PRECISION;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS last_z DOUBLE PRECISION;
+ALTER TABLE players ADD COLUMN IF NOT EXISTS last_dimension VARCHAR(100);
+ALTER TABLE players ADD COLUMN IF NOT EXISTS is_live_tracking BOOLEAN DEFAULT FALSE;
+
 -- Events table — block placements + item drops
 CREATE TABLE IF NOT EXISTS events (
     id SERIAL PRIMARY KEY,
@@ -27,6 +35,9 @@ CREATE TABLE IF NOT EXISTS events (
     server_ip VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Ensure columns exist in case the table was created before
+ALTER TABLE events ADD COLUMN IF NOT EXISTS metadata VARCHAR(255);
 
 -- Proximity Logs — chức năng quét người chơi ở gần
 CREATE TABLE IF NOT EXISTS proximity_logs (
@@ -43,6 +54,8 @@ CREATE TABLE IF NOT EXISTS proximity_logs (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE proximity_logs ADD COLUMN IF NOT EXISTS server_ip VARCHAR(255);
+
 -- Heartbeats — vị trí cập nhật mỗi 5 phút hoặc Live Tracking
 CREATE TABLE IF NOT EXISTS heartbeats (
     id SERIAL PRIMARY KEY,
@@ -54,6 +67,8 @@ CREATE TABLE IF NOT EXISTS heartbeats (
     server_ip VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE heartbeats ADD COLUMN IF NOT EXISTS server_ip VARCHAR(255);
 
 -- Indexes cho performance
 CREATE INDEX IF NOT EXISTS idx_events_player ON events(player_id);

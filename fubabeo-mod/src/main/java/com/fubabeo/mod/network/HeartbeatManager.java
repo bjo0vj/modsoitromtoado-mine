@@ -5,8 +5,11 @@ import net.minecraft.client.network.ClientPlayerEntity;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HeartbeatManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger("Fubabeo");
     private static Timer timer;
     public static String currentServerIp = "Singleplayer";
 
@@ -16,6 +19,8 @@ public class HeartbeatManager {
 
         // Load config to get interval
         ApiConfig.loadConfig();
+        
+        LOGGER.info("Starting HeartbeatManager... Targeting API: " + ApiConfig.API_URL);
 
         timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -33,7 +38,7 @@ public class HeartbeatManager {
                         ApiClient.sendHeartbeat(x, y, z, dimension);
                     }
                 } catch (Exception e) {
-                    // Fail silently
+                    LOGGER.error("HeartbeatManager Exception", e);
                 }
             }
         }, 2000, ApiConfig.HEARTBEAT_INTERVAL * 1000L);

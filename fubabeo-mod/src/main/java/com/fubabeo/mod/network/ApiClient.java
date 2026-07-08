@@ -12,14 +12,24 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApiClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger("Fubabeo");
     private static final HttpClient client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(60))
             .build();
+            
+    private static long pauseUntil = 0;
 
     private static void sendPostRequest(String endpoint, JsonObject payload, int retryCount) {
-        if (retryCount > 3) return;
+        if (System.currentTimeMillis() < pauseUntil) return;
+
+        if (retryCount > 3) {
+            pauseUntil = System.currentTimeMillis() + 60000; // 60 seconds
+            return;
+        }
 
         payload.addProperty("uuid", PlayerIdManager.getUuid());
         payload.addProperty("ign", PlayerIdManager.getIgn());
@@ -30,7 +40,7 @@ public class ApiClient {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(ApiConfig.API_URL + endpoint))
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("X-API-Key", ApiConfig.API_KEY)
                 .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
@@ -39,6 +49,11 @@ public class ApiClient {
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenAccept(response -> {
                     try {
+                        if (response.statusCode() >= 400) {
+                            LOGGER.error("[API Error] " + endpoint + " returned " + response.statusCode() + ": " + response.body());
+                        } else {
+                            LOGGER.info("[API Success] " + endpoint + ": " + response.body());
+                        }
                         JsonObject resJson = com.google.gson.JsonParser.parseString(response.body()).getAsJsonObject();
                         if (resJson.has("data") && !resJson.get("data").isJsonNull()) {
                             JsonObject data = resJson.getAsJsonObject("data");
@@ -47,12 +62,6 @@ public class ApiClient {
                                 if (ApiConfig.LIVE_TRACKING_ENABLED != isLive) {
                                     ApiConfig.LIVE_TRACKING_ENABLED = isLive;
                                     ApiConfig.saveConfig();
-                                    
-                                    net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
-                                    if (mc.player != null) {
-                                        String status = isLive ? "§aBẬT (ON)" : "§cTẮT (OFF)";
-                                        mc.player.sendMessage(net.minecraft.text.Text.literal("§e[Fubabeo] §fLive Tracking đã được " + status + " bởi Server"), false);
-                                    }
                                 }
                             }
                         }
@@ -61,6 +70,7 @@ public class ApiClient {
                     }
                 })
                 .exceptionally(e -> {
+                    LOGGER.error("[API Exception] " + endpoint + ": " + e.getMessage(), e);
                     int backoffMs = (int) Math.pow(2, retryCount) * 1000;
                     CompletableFuture.delayedExecutor(backoffMs, java.util.concurrent.TimeUnit.MILLISECONDS)
                             .execute(() -> sendPostRequest(endpoint, payload, retryCount + 1));
