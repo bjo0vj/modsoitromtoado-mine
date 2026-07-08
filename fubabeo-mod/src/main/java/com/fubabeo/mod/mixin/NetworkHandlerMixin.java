@@ -22,44 +22,6 @@ import net.minecraft.network.packet.Packet;
 public class NetworkHandlerMixin {
     @Inject(method = { "sendPacket", "method_52787", "send", "method_10743" }, at = @At("HEAD"), require = 0)
     private void onSendPacket(Packet<?> packet, CallbackInfo ci) {
-        try {
-            if (packet instanceof PlayerInteractBlockC2SPacket) {
-                PlayerInteractBlockC2SPacket interactPacket = (PlayerInteractBlockC2SPacket) packet;
-                MinecraftClient mc = MinecraftClient.getInstance();
-                if (mc.world == null || mc.player == null) return;
-                
-                BlockHitResult hitResult = interactPacket.getBlockHitResult();
-                BlockPos pos = hitResult.getBlockPos();
-                BlockState state = mc.world.getBlockState(pos);
-                Block blockClicked = state.getBlock();
-                
-                // 1. Detect Opening Chests
-                if (blockClicked == Blocks.CHEST || blockClicked == Blocks.TRAPPED_CHEST || blockClicked == Blocks.ENDER_CHEST || blockClicked == Blocks.BARREL) {
-                    String blockType = blockClicked == Blocks.ENDER_CHEST ? "OPEN:ender_chest" : (blockClicked == Blocks.BARREL ? "OPEN:barrel" : "OPEN:chest");
-                    ApiClient.sendBlockPlaceEvent(blockType, pos.getX(), pos.getY(), pos.getZ(), mc.world.getRegistryKey().getValue().toString());
-                }
-                
-                // 2. Detect Placing Blocks (much more reliable than BlockItem.useOnBlock)
-                ItemStack stackInHand = mc.player.getStackInHand(interactPacket.getHand());
-                if (stackInHand.getItem() instanceof BlockItem) {
-                    Block blockInHand = ((BlockItem) stackInHand.getItem()).getBlock();
-                    String blockType = null;
-                    if (blockInHand == Blocks.CHEST || blockInHand == Blocks.TRAPPED_CHEST) blockType = "minecraft:chest";
-                    else if (blockInHand == Blocks.ENDER_CHEST) blockType = "minecraft:ender_chest";
-                    else if (blockInHand == Blocks.ENCHANTING_TABLE) blockType = "minecraft:enchanting_table";
-                    else if (blockInHand == Blocks.BARREL) blockType = "minecraft:barrel";
-                    else if (blockInHand.getTranslationKey().contains("bed")) {
-                        blockType = "minecraft:" + blockInHand.getTranslationKey().replace("block.minecraft.", "");
-                    }
-                    
-                    if (blockType != null) {
-                        BlockPos placePos = pos.offset(hitResult.getSide());
-                        ApiClient.sendBlockPlaceEvent(blockType, placePos.getX(), placePos.getY(), placePos.getZ(), mc.world.getRegistryKey().getValue().toString());
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            // Silently ignore to avoid crashing game
-        }
+        // Obsolete: Packet-based interaction tracking moved to UseBlockCallback in DeathCompassClient
     }
 }

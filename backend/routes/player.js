@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
-const { sendSuccess, sendError } = require('../utils/response');
-const auth = require('../middleware/auth');
+import * as db from '../config/database.js';
+import { sendSuccess, sendError } from '../utils/response.js';
+import auth from '../middleware/auth.js';
 
 router.post('/login', auth, async (req, res) => {
     const { uuid, ign, serverIp, modVersion } = req.body;
@@ -33,4 +33,4 @@ router.post('/login', auth, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

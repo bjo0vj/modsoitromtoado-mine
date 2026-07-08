@@ -9,4 +9,4 @@ const tokenAuth = (req, res, next) => {
     res.status(401).json({ success: false, message: 'Unauthorized' });
 };
 
-module.exports = tokenAuth;
+export default tokenAuth;

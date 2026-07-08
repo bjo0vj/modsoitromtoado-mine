@@ -1,7 +1,12 @@
-const { Pool } = require('pg');
-require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
+import pkg from 'pg';
+const { Pool } = pkg;
+import 'dotenv/config.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -38,6 +43,4 @@ async function initializeSchema() {
 // Run schema on import
 initializeSchema();
 
-module.exports = {
-    query: (text, params) => pool.query(text, params),
-};
+export const query = (text, params) => pool.query(text, params);

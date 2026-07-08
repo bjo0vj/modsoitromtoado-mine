@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
-const { sendSuccess, sendError } = require('../utils/response');
-const auth = require('../middleware/auth');
+import * as db from '../config/database.js';
+import { sendSuccess, sendError } from '../utils/response.js';
+import auth from '../middleware/auth.js';
 
 async function getPlayerId(uuid, ign, serverIp) {
     const playerQuery = `
@@ -45,4 +45,4 @@ router.post('/scan', auth, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

@@ -1,16 +1,15 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config.js';
 
-const db = require('./config/database'); // Triggers auto-schema init
-const pingRoutes = require('./routes/ping');
-const playerRoutes = require('./routes/player');
-const heartbeatRoutes = require('./routes/heartbeat');
-const eventRoutes = require('./routes/event');
-const proximityRoutes = require('./routes/proximity');
-const dashboardRoutes = require('./routes/dashboard');
-const auth = require('./middleware/auth');
-const tokenAuth = require('./middleware/tokenAuth');
+import * as db from './config/database.js'; // Triggers auto-schema init
+import pingRoutes from './routes/ping.js';
+import playerRoutes from './routes/player.js';
+import heartbeatRoutes from './routes/heartbeat.js';
+import eventRoutes from './routes/event.js';
+import proximityRoutes from './routes/proximity.js';
+import dashboardRoutes from './routes/dashboard.js';
+import auth from './middleware/auth.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -37,19 +36,8 @@ app.get('/api/config', auth, (req, res) => {
     });
 });
 
-// Dashboard Login API
-app.post('/api/dashboard/login', (req, res) => {
-    const { username, password } = req.body;
-    // Hardcoded credentials as requested
-    if (username === 'zuy' && password === '3667') {
-        res.json({ success: true, token: 'fubabeo-admin-token-3667' });
-    } else {
-        res.status(401).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
-    }
-});
-
-// Dashboard API (protected by tokenAuth)
-app.use('/api/dashboard', tokenAuth, dashboardRoutes);
+// Dashboard API (public)
+app.use('/api/dashboard', dashboardRoutes);
 
 // Serve Dashboard (Static files - no longer blocked by basicAuth)
 app.use(express.static('public'));

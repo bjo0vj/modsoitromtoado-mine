@@ -10,4 +10,4 @@ const basicAuth = (req, res, next) => {
     res.status(401).send('Authentication required.');
 };
 
-module.exports = basicAuth;
+export default basicAuth;

@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
-const { sendSuccess, sendError } = require('../utils/response');
+import * as db from '../config/database.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 
 // GET /api/dashboard/players
 router.get('/players', async (req, res) => {
@@ -156,4 +156,4 @@ router.post('/player/:uuid/toggle-tracking', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

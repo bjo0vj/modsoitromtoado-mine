@@ -13,3 +13,5 @@ fubabeo-mod/run/
 Thumbs.db
 
 *.zip
+
+.agents/

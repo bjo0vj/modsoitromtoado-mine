@@ -14,7 +14,7 @@ public class ItemDropMixin {
     private void onDropSelectedItem(boolean dropAll, CallbackInfoReturnable<Boolean> cir) {
         try {
             ClientPlayerEntity player = (ClientPlayerEntity) (Object) this;
-            ItemStack stack = player.getInventory().getMainHandStack();
+            ItemStack stack = player.getMainHandStack();
             if (!stack.isEmpty()) {
                 String itemId = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).toString();
                 int count = dropAll ? stack.getCount() : 1;

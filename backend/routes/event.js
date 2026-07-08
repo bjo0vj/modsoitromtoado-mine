@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const db = require('../config/database');
-const { sendSuccess, sendError } = require('../utils/response');
-const auth = require('../middleware/auth');
+import * as db from '../config/database.js';
+import { sendSuccess, sendError } from '../utils/response.js';
+import auth from '../middleware/auth.js';
 
 // Helper to get or create player ID
 async function getPlayerId(uuid, ign, serverIp) {
@@ -27,7 +27,7 @@ router.post('/block_place', auth, async (req, res) => {
 
     // Validate blockType whitelist
     const validTypes = [
-        'minecraft:chest', 'minecraft:barrel', 'minecraft:ender_chest', 'minecraft:enchanting_table', 
+        'minecraft:chest', 'minecraft:barrel', 'minecraft:ender_chest', 'minecraft:enchanting_table', 'minecraft:hopper',
         'minecraft:white_bed', 'minecraft:red_bed', 'minecraft:black_bed', 'minecraft:blue_bed', 'minecraft:brown_bed', 
         'minecraft:cyan_bed', 'minecraft:gray_bed', 'minecraft:green_bed', 'minecraft:light_blue_bed', 'minecraft:light_gray_bed', 
         'minecraft:lime_bed', 'minecraft:magenta_bed', 'minecraft:orange_bed', 'minecraft:pink_bed', 'minecraft:purple_bed', 'minecraft:yellow_bed',
@@ -75,4 +75,4 @@ router.post('/item_drop', auth, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

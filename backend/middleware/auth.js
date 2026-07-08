@@ -1,5 +1,5 @@
-require('dotenv').config();
-const { sendError } = require('../utils/response');
+import 'dotenv/config.js';
+import { sendError } from '../utils/response.js';
 
 const authMiddleware = (req, res, next) => {
     const apiKey = req.header('X-API-Key');
@@ -15,4 +15,4 @@ const authMiddleware = (req, res, next) => {
     next();
 };
 
-module.exports = authMiddleware;
+export default authMiddleware;
